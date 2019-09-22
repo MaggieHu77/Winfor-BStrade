@@ -1,0 +1,158 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>global_backtest module &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-global_backtest">
+<span id="global-backtest-module"></span><h1>global_backtest module<a class="headerlink" href="#module-global_backtest" title="永久链接至标题">¶</a></h1>
+<p>一次回测多只股票
+股票初始仓位平均分配
+集合所有股票回测结果
+整理所有发生的交易记录
+画出资产净值图像</p>
+<dl class="class">
+<dt id="global_backtest.GlobalBacktest">
+<em class="property">class </em><code class="descclassname">global_backtest.</code><code class="descname">GlobalBacktest</code><span class="sig-paren">(</span><em>start_time</em>, <em>end_time</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/global_backtest.html#GlobalBacktest"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#global_backtest.GlobalBacktest" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="global_backtest.GlobalBacktest.INDEX_LEVEL0">
+<code class="descname">INDEX_LEVEL0</code><em class="property"> = 'stock_code'</em><a class="headerlink" href="#global_backtest.GlobalBacktest.INDEX_LEVEL0" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="global_backtest.GlobalBacktest.INDEX_LEVEL1">
+<code class="descname">INDEX_LEVEL1</code><em class="property"> = 'trade_date'</em><a class="headerlink" href="#global_backtest.GlobalBacktest.INDEX_LEVEL1" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="global_backtest.GlobalBacktest.complement_single_backtest">
+<code class="descname">complement_single_backtest</code><span class="sig-paren">(</span><em>single_df: pandas.core.frame.DataFrame</em><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="reference internal" href="_modules/global_backtest.html#GlobalBacktest.complement_single_backtest"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#global_backtest.GlobalBacktest.complement_single_backtest" title="永久链接至目标">¶</a></dt>
+<dd><p>由于个股存在停牌等数据缺失的问题，在进行总表合并的时候，需要先将个股单表按照完整的交易日数据补齐
+:param single_df: 个股回测数据总结表
+:return: 经过日期缺失补足后的个股单表</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="global_backtest.GlobalBacktest.get_complete_trade_dates">
+<code class="descname">get_complete_trade_dates</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; &lt;built-in function array&gt;<a class="reference internal" href="_modules/global_backtest.html#GlobalBacktest.get_complete_trade_dates"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#global_backtest.GlobalBacktest.get_complete_trade_dates" title="永久链接至目标">¶</a></dt>
+<dd><p>获取回测期间内所有交易日，并转化为datetime.date形式的list
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="global_backtest.GlobalBacktest.run_backtest">
+<code class="descname">run_backtest</code><span class="sig-paren">(</span><em>global_index: str, func: Callable, key_params: Dict[str, Any]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/global_backtest.html#GlobalBacktest.run_backtest"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#global_backtest.GlobalBacktest.run_backtest" title="永久链接至目标">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">参数:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_index</strong> – </li>
+<li><strong>func</strong> – </li>
+<li><strong>key_params</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">返回:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="global_backtest.GlobalBacktest.stock_codes_filter">
+<em class="property">classmethod </em><code class="descname">stock_codes_filter</code><span class="sig-paren">(</span><em>global_index: str = '000300.SH'</em>, <em>date: str = '2016-09-01'</em><span class="sig-paren">)</span> &#x2192; List[str]<a class="reference internal" href="_modules/global_backtest.html#GlobalBacktest.stock_codes_filter"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#global_backtest.GlobalBacktest.stock_codes_filter" title="永久链接至目标">¶</a></dt>
+<dd><p>筛选出在指定日期当时，指定指数成分股的代码
+:param global_index: 指定指数代码，如”000300.SH”为沪深300
+:param date: 格式为yyyy-mm-dd
+:return: 符合条件股票代码列表</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/global_backtest.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/global_backtest.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

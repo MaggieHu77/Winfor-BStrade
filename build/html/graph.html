@@ -1,0 +1,186 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>graph module &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-graph">
+<span id="graph-module"></span><h1>graph module<a class="headerlink" href="#module-graph" title="永久链接至标题">¶</a></h1>
+<dl class="class">
+<dt id="graph.BSgraph">
+<em class="property">class </em><code class="descclassname">graph.</code><code class="descname">BSgraph</code><span class="sig-paren">(</span><em>trade_env</em>, <em>stat</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#BSgraph"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.BSgraph" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="graph.BSgraph.performance">
+<code class="descname">performance</code><span class="sig-paren">(</span><em>trdchg</em>, <em>dir=''</em>, <em>star=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#BSgraph.performance"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.BSgraph.performance" title="永久链接至目标">¶</a></dt>
+<dd><p>绘图展现回测期内的高低点和趋势变化</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">参数:</th><td class="field-body"><ul class="first simple">
+<li><strong>codename</strong> – 回测股票代码或名称</li>
+<li><strong>dir</strong> – 图像存放文件夹地址</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">返回:</th><td class="field-body"><p class="first last">返回图像文件.jpg</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="graph.BSgraph.strategy_info">
+<code class="descname">strategy_info</code><span class="sig-paren">(</span><em>lasthl</em>, <em>space_h</em>, <em>space_l</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#BSgraph.strategy_info"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.BSgraph.strategy_info" title="永久链接至目标">¶</a></dt>
+<dd><p>返回股票在总表中的观测信息
+:param lasthl: 最后一个高点或者低点的index
+:return: Strategy_s表中对应信息tuple</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="graph.BSgraph.wrapper_to_global_backtest">
+<code class="descname">wrapper_to_global_backtest</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#BSgraph.wrapper_to_global_backtest"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.BSgraph.wrapper_to_global_backtest" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="graph.Stat">
+<em class="property">class </em><code class="descclassname">graph.</code><code class="descname">Stat</code><span class="sig-paren">(</span><em>hlp_env</em>, <em>trd_env</em>, <em>trade_env</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="graph.Stat.get_account_info">
+<code class="descname">get_account_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_account_info"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_account_info" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.get_bs_info">
+<code class="descname">get_bs_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_bs_info"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_bs_info" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.get_hl_info">
+<code class="descname">get_hl_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_hl_info"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_hl_info" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.get_mkt_p">
+<code class="descname">get_mkt_p</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_mkt_p"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_mkt_p" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.get_performance">
+<code class="descname">get_performance</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_performance"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_performance" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.get_strategy_info">
+<code class="descname">get_strategy_info</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.get_strategy_info"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.get_strategy_info" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="graph.Stat.max_drawdown">
+<code class="descname">max_drawdown</code><span class="sig-paren">(</span><em>series</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#Stat.max_drawdown"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.Stat.max_drawdown" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="graph.runbacktest">
+<code class="descclassname">graph.</code><code class="descname">runbacktest</code><span class="sig-paren">(</span><em>begin</em>, <em>codename</em>, <em>dir</em>, <em>end</em>, <em>paint=True</em>, <em>star=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/graph.html#runbacktest"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#graph.runbacktest" title="永久链接至目标">¶</a></dt>
+<dd><p>设置策略环境参数，并运行部分回测策略
+:param begin: 回测开始时间
+:param codename: 回测股票代码或名称
+:param dir: 作图目录地址
+:param end: 回测结束时间，默认当前
+:param paint: bool值，是否画图，默认为True
+:param star: bool值，最后一个标记星星，默认为False
+:return: 返回策略环境对象整体和图像地址</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/graph.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/graph.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,192 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>loadData &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>loadData 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+
+<span class="kn">from</span> <span class="nn">WindPy</span> <span class="k">import</span> <span class="n">w</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span> <span class="k">as</span> <span class="n">dd</span>
+<span class="kn">from</span> <span class="nn">K</span> <span class="k">import</span> <span class="n">K</span><span class="p">,</span> <span class="n">K30</span><span class="p">,</span> <span class="n">K5</span>
+<span class="kn">import</span> <span class="nn">constant</span>
+<span class="kn">from</span> <span class="nn">defindex</span> <span class="k">import</span> <span class="n">Kti</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">nan</span>
+<span class="kn">from</span> <span class="nn">defindex</span> <span class="k">import</span> <span class="n">get_kti_seq</span>
+
+
+<div class="viewcode-block" id="loaddataError"><a class="viewcode-back" href="../loadData.html#loadData.loaddataError">[文档]</a><span class="k">class</span> <span class="nc">loaddataError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">errorinfo</span> <span class="o">=</span> <span class="n">msg</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">errorinfo</span></div>
+
+
+<div class="viewcode-block" id="loadData_daily"><a class="viewcode-back" href="../loadData.html#loadData.loadData_daily">[文档]</a><span class="k">def</span> <span class="nf">loadData_daily</span><span class="p">(</span><span class="n">begin_date</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">BEGIN_DATE</span><span class="p">,</span> <span class="n">stockname</span><span class="o">=</span><span class="s1">&#39;600519.SH&#39;</span><span class="p">,</span>
+                   <span class="n">end_date</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">END_DATE</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">w</span><span class="o">.</span><span class="n">isconnected</span><span class="p">():</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="n">res</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsd</span><span class="p">(</span><span class="n">stockname</span><span class="p">,</span> <span class="s2">&quot;high, low, close, trade_status&quot;</span><span class="p">,</span> <span class="n">begin_date</span><span class="p">,</span> <span class="n">end_date</span><span class="p">,</span>
+                <span class="s1">&#39;priceadj=F&#39;</span><span class="p">,</span> <span class="n">showblank</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">is_index</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wss</span><span class="p">(</span><span class="n">stockname</span><span class="p">,</span> <span class="s1">&#39;windtype&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;股票指数&quot;</span>
+    <span class="n">K_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">ErrorCode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1">#print(stockname + &quot; load daily K info Error: wsd - &quot; +</span>
+         <span class="c1">#     str(res.ErrorCode))</span>
+        <span class="c1"># 这里抛出定义的异常，能够在调动的上层捕捉，以防程序异常停止</span>
+        <span class="k">raise</span> <span class="n">loaddataError</span><span class="p">(</span><span class="n">stockname</span> <span class="o">+</span> <span class="s1">&#39;load data from Wind error: &#39;</span> <span class="o">+</span>
+                            <span class="n">res</span><span class="o">.</span><span class="n">ErrorCode</span><span class="p">)</span>
+    <span class="c1"># TODO:优化对非停牌日导致的价格数据缺失的前向填充方法，借用pd.DataFrame的方法</span>
+    <span class="n">valid_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_index</span> <span class="ow">and</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;停牌一天&quot;</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">jj</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="ow">or</span> <span class="ow">not</span> \
+                <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">]:</span>
+            <span class="k">continue</span>
+        <span class="n">temp_time</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">Times</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># DEBUG: Kti标记需要剔除掉停牌期</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">K</span><span class="p">(</span><span class="n">time</span><span class="o">=</span><span class="n">temp_time</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+              <span class="n">low</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span> <span class="n">close</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+              <span class="n">i</span><span class="o">=</span><span class="n">Kti</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">valid_idx</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">lev</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">K_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">valid_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">K_list</span></div>
+
+
+<div class="viewcode-block" id="loadData_min"><a class="viewcode-back" href="../loadData.html#loadData.loadData_min">[文档]</a><span class="k">def</span> <span class="nf">loadData_min</span><span class="p">(</span><span class="n">begin_time</span><span class="p">,</span> <span class="n">stockname</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">barsize</span><span class="p">,</span> <span class="n">init_p</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">w</span><span class="o">.</span><span class="n">isconnected</span><span class="p">():</span>
+        <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsi</span><span class="p">(</span><span class="n">stockname</span><span class="p">,</span> <span class="s2">&quot;high, low, close&quot;</span><span class="p">,</span> <span class="n">begin_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span>
+                <span class="n">f</span><span class="s2">&quot;barsize=</span><span class="si">{barsize}</span><span class="s2">; Priceadj=F&quot;</span><span class="p">)</span>
+    <span class="n">K_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">ErrorCode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1">#print(f&quot;Error:{stockname} load {barsize}min K info error: wsi-{res.ErrorCode}&quot;)</span>
+        <span class="k">raise</span> <span class="n">loaddataError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{stockname}</span><span class="s2"> load min data from Wind error: </span><span class="si">{res.ErrorCode}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">barsize</span> <span class="o">==</span> <span class="mi">30</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">init_p</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="n">init_p</span> <span class="o">=</span> <span class="p">(</span><span class="n">init_p</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">seq_kti</span> <span class="o">=</span> <span class="n">get_kti_seq</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))),</span> <span class="n">init_p</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+
+                <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">temp_t</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">Times</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">K30</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                        <span class="n">low</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                        <span class="n">close</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                        <span class="n">i</span><span class="o">=</span><span class="n">seq_kti</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+                        <span class="n">lev</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                        <span class="n">time</span><span class="o">=</span><span class="n">temp_t</span>
+                        <span class="p">)</span>
+                <span class="n">K_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">init_p</span> <span class="o">=</span> <span class="p">(</span><span class="n">init_p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">init_p</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">seq_kti</span> <span class="o">=</span> <span class="n">get_kti_seq</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]))),</span> <span class="n">init_p</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">]</span> <span class="o">==</span> <span class="n">nan</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">temp_t</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">Times</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+                <span class="n">k</span> <span class="o">=</span> <span class="n">K5</span><span class="p">(</span><span class="n">high</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                       <span class="n">low</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                       <span class="n">close</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="n">jj</span><span class="p">],</span> <span class="mi">2</span><span class="p">),</span>
+                       <span class="n">i</span><span class="o">=</span><span class="n">seq_kti</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+                       <span class="n">lev</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                       <span class="n">time</span><span class="o">=</span><span class="n">temp_t</span><span class="p">)</span>
+                <span class="n">K_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">K_list</span></div>
+
+
+
+
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

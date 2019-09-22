@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>misc &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>misc 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">openpyxl</span> <span class="k">import</span> <span class="n">load_workbook</span>
+<span class="kn">from</span> <span class="nn">xlrd</span> <span class="k">import</span> <span class="n">open_workbook</span>
+
+
+<div class="viewcode-block" id="printt"><a class="viewcode-back" href="../misc.html#misc.printt">[文档]</a><span class="k">def</span> <span class="nf">printt</span><span class="p">(</span><span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">msg_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">global_mode</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    控制是否打印内容，主要用于兼容开发和运行使用，只有信息本身级别不低于全局打印级别，内容才被打印</span>
+<span class="sd">    级别越低，打印内容越详细</span>
+<span class="sd">    :param msg: str，需要打印的内容</span>
+<span class="sd">    :param msg_mode: 待打印内容自身mode级别</span>
+<span class="sd">    :param global_mode: 全局打印级别</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">msg_mode</span> <span class="o">&gt;=</span> <span class="n">global_mode</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">msg_mode</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[0m&quot;</span>
+        <span class="k">elif</span> <span class="n">msg_mode</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[34m&quot;</span>
+        <span class="k">elif</span> <span class="n">msg_mode</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[35m&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[31m&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">msg</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="read_file"><a class="viewcode-back" href="../misc.html#misc.read_file">[文档]</a><span class="k">def</span> <span class="nf">read_file</span><span class="p">(</span><span class="n">f</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    从文件地址中读取需要回测的股票代码或指数。</span>
+
+<span class="sd">    :param f: 文件的绝对路径</span>
+<span class="sd">    :return: 需要回测的股票代码字符串list</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">b_name</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    <span class="n">b_type</span> <span class="o">=</span> <span class="n">b_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">b_type</span> <span class="o">==</span> <span class="s2">&quot;txt&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">|;|,|/|&quot;</span><span class="p">)</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">b_type</span> <span class="o">==</span> <span class="s2">&quot;xlsx&quot;</span><span class="p">:</span>
+        <span class="n">wb</span> <span class="o">=</span> <span class="n">load_workbook</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">sheet</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">active</span>
+        <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">sheet</span><span class="o">.</span><span class="n">columns</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">code</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">code</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">b_type</span> <span class="o">==</span> <span class="s2">&quot;xls&quot;</span><span class="p">:</span>
+        <span class="n">wb</span> <span class="o">=</span> <span class="n">open_workbook</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">sheet</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">sheet_by_index</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">sheet</span><span class="o">.</span><span class="n">col_values</span><span class="p">(</span><span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">code</span><span class="p">:</span>
+                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: 不支持的文件格式 </span><span class="si">%s</span><span class="s2">， 请选择.txt, .xls .xlsx之一&quot;</span> <span class="o">%</span> <span class="n">b_type</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">codes</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,236 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>email_s &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>email_s 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1">#! python3</span>
+
+<span class="kn">import</span> <span class="nn">smtplib</span>
+<span class="kn">from</span> <span class="nn">email.mime.text</span> <span class="k">import</span> <span class="n">MIMEText</span>
+<span class="kn">from</span> <span class="nn">email.mime.image</span> <span class="k">import</span> <span class="n">MIMEImage</span>
+<span class="kn">from</span> <span class="nn">email.mime.multipart</span> <span class="k">import</span> <span class="n">MIMEMultipart</span>
+<span class="kn">from</span> <span class="nn">email.header</span> <span class="k">import</span> <span class="n">Header</span>
+<span class="kn">from</span> <span class="nn">premailer</span> <span class="k">import</span> <span class="n">transform</span>
+
+
+<span class="c1"># 常用邮箱的发件服务器地址，邮箱后缀：（发件服务器地址，是否SSL发信， 端口号）</span>
+<span class="n">host_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;163.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.163.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;winforcap.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.winforcap.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;nedugroup.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.nedugroup.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;sina.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.sina.com.cn&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;sohu.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.sohu.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;126.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.126.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;qq.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.qq.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span>
+             <span class="s1">&#39;hotmail.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.live.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">587</span><span class="p">),</span>
+             <span class="s1">&#39;gmail.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.gmail.com&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">587</span><span class="p">),</span>
+             <span class="s1">&#39;foxmail.com&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;smtp.foxmail.com&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">25</span><span class="p">)}</span>
+
+
+<div class="viewcode-block" id="SendEmail"><a class="viewcode-back" href="../email_s.html#email_s.SendEmail">[文档]</a><span class="k">class</span> <span class="nc">SendEmail</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span> <span class="o">=</span> <span class="n">MIMEMultipart</span><span class="p">(</span><span class="s2">&quot;root&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_msg</span> <span class="o">=</span> <span class="n">MIMEMultipart</span><span class="p">(</span><span class="s2">&quot;body&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isSent</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="SendEmail.setSend"><a class="viewcode-back" href="../email_s.html#email_s.SendEmail.setSend">[文档]</a>    <span class="k">def</span> <span class="nf">setSend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">sender</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">pwd</span><span class="p">,</span> <span class="n">sender_name</span><span class="o">=</span><span class="s2">&quot;quant&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        发信基本设置和发信邮箱登录</span>
+<span class="sd">        :param subject: 邮件标题</span>
+<span class="sd">        :param sender: 发信邮箱</span>
+<span class="sd">        :param receiver: 邮件接收者</span>
+<span class="sd">        :param pwd: 发信邮箱登录密码</span>
+<span class="sd">        :param sender_name: 发信邮箱显示名称</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="p">[</span><span class="s1">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">subject</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="p">[</span><span class="s1">&#39;from&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Header</span><span class="p">(</span><span class="n">sender</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="p">[</span><span class="s1">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">receiver</span><span class="p">)</span>
+        <span class="n">server</span> <span class="o">=</span> <span class="n">sender</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">host</span><span class="p">,</span> <span class="n">SSL</span><span class="p">,</span> <span class="n">port</span> <span class="o">=</span> <span class="n">host_dict</span><span class="p">[</span><span class="n">server</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">SSL</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smtp</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP_SSL</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">smtp</span> <span class="o">=</span> <span class="n">smtplib</span><span class="o">.</span><span class="n">SMTP</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smtp</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">pwd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smtp</span><span class="o">.</span><span class="n">sendmail</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="o">.</span><span class="n">as_string</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isSent</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="SendEmail.imageHTML"><a class="viewcode-back" href="../email_s.html#email_s.SendEmail.imageHTML">[文档]</a>    <span class="k">def</span> <span class="nf">imageHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chg_img</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">chg_img</span><span class="p">)):</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">chg_img</span><span class="p">[</span><span class="n">ii</span><span class="p">],</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+            <span class="n">imgh</span> <span class="o">=</span> <span class="n">MIMEImage</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="n">img</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">imgh</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s1">&#39;Content-ID&#39;</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;&lt;image</span><span class="si">{ii}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">imgh</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SendEmail.buildHTML"><a class="viewcode-back" href="../email_s.html#email_s.SendEmail.buildHTML">[文档]</a>    <span class="k">def</span> <span class="nf">buildHTML</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chg_html</span><span class="p">,</span> <span class="n">up_html</span><span class="p">,</span> <span class="n">down_html</span><span class="p">,</span> <span class="n">consd_html</span><span class="p">,</span> <span class="n">img_html</span><span class="p">,</span> <span class="n">stampf</span><span class="p">):</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            &lt;html&gt;</span>
+<span class="s2">                &lt;head&gt;</span>
+<span class="s2">                    &lt;meta charset=&#39;utf-8&#39;&gt;</span>
+<span class="s2">                        &lt;style type=&quot;text/css&quot;&gt;</span>
+<span class="s2">                            .title{font-weight:bold;font-size:16px;}</span>
+<span class="s2">                            h2{text-align:center;font-family:宋体;</span>
+<span class="s2">                               font-weight:bold;</span>
+<span class="s2">                               font-size:18px}</span>
+<span class="s2">                            p.date{text-align:right;}</span>
+<span class="s2">                            caption{font-size:16px;}</span>
+<span class="s2">                            .thbg0{background:#dc143c !important;}</span>
+<span class="s2">                            .thbg{background:#0000cd !important;}</span>
+<span class="s2">                            .thfont{font-family:微软雅黑;</span>
+<span class="s2">                                    font-weight:bold;</span>
+<span class="s2">                                    width: 160px;</span>
+<span class="s2">                                    height:30px;</span>
+<span class="s2">                                    font-size:15px;</span>
+<span class="s2">                                    color:#fffff0}</span>
+<span class="s2">                            .cell{background:#ffffff !important;</span>
+<span class="s2">                                  font-family:宋体;</span>
+<span class="s2">                                  text-align:center;</span>
+<span class="s2">                                  width: 160px;</span>
+<span class="s2">                                  height: 30px;}</span>
+<span class="s2">                            .border{border-style: solid;</span>
+<span class="s2">                                    border-width: 2px;</span>
+<span class="s2">                                    border-color: #cccccc;}</span>
+<span class="s2">                        &lt;/style&gt;</span>
+<span class="s2">                &lt;/head&gt;</span>
+<span class="s2">                &lt;body&gt;&quot;&quot;&quot;</span> <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    &lt;h2&gt;BS趋势策略报告-</span><span class="si">{stampf}</span><span class="s2">&lt;/h2&gt;</span>
+<span class="s2">                    &lt;p&gt;</span>
+<span class="s2">                    &lt;div align=&quot;center&quot;&gt;</span>
+<span class="s2">                        &lt;table class=&quot;border&quot;&gt;</span>
+<span class="s2">                        &lt;caption&gt;趋势改变股票列表&lt;/caption&gt;</span>
+<span class="s2">                        </span><span class="si">{chg_html}</span><span class="s2"></span>
+<span class="s2">                    &lt;/table&gt;</span>
+<span class="s2">                    &lt;/div&gt;</span>
+<span class="s2">                    &lt;/p&gt;</span>
+<span class="s2">                    &lt;p&gt;</span>
+<span class="s2">                    </span><span class="si">{img_html}</span><span class="s2"></span>
+<span class="s2">                    &lt;/p&gt;</span>
+<span class="s2">                    &lt;p&gt;</span>
+<span class="s2">                    &lt;div align=&quot;center&quot;&gt;</span>
+<span class="s2">                        &lt;table class=&quot;border&quot;&gt;</span>
+<span class="s2">                        &lt;caption&gt;上涨趋势中的股票列表&lt;/caption&gt;</span>
+<span class="s2">                        </span><span class="si">{up_html}</span><span class="s2"></span>
+<span class="s2">                    &lt;/table&gt;</span>
+<span class="s2">                    &lt;/div&gt;</span>
+<span class="s2">                    &lt;/p&gt;</span>
+<span class="s2">                    &lt;p&gt;</span>
+<span class="s2">                    &lt;div align=&quot;center&quot;&gt;</span>
+<span class="s2">                        &lt;table class=&quot;border&quot;&gt;</span>
+<span class="s2">                        &lt;caption&gt;下跌趋势中的股票列表&lt;/caption&gt;</span>
+<span class="s2">                        </span><span class="si">{down_html}</span><span class="s2"></span>
+<span class="s2">                    &lt;/table&gt;</span>
+<span class="s2">                    &lt;/div&gt;</span>
+<span class="s2">                    &lt;/p&gt;</span>
+<span class="s2">                    &lt;p&gt;</span>
+<span class="s2">                    &lt;div align=&quot;center&quot;&gt;</span>
+<span class="s2">                        &lt;table class=&quot;border&quot;&gt;</span>
+<span class="s2">                        &lt;caption&gt;盘整趋势中的股票列表&lt;/caption&gt;</span>
+<span class="s2">                        </span><span class="si">{consd_html}</span><span class="s2"></span>
+<span class="s2">                        &lt;/table&gt;</span>
+<span class="s2">                    &lt;div&gt;</span>
+<span class="s2">                    &lt;/p&gt;</span>
+<span class="s2">                &lt;/body&gt;</span>
+<span class="s2">            &lt;/html&gt;&quot;&quot;&quot;</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="n">MIMEText</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="s1">&#39;html&#39;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content_msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root_msg</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content_msg</span><span class="p">)</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">mail</span> <span class="o">=</span> <span class="n">SendEmail</span><span class="p">()</span>
+    <span class="n">chg_html</span> <span class="o">=</span><span class="s1">&#39;&#39;&#39;&lt;tr&gt;&lt;th class=&quot;thbg thfont&quot;&gt;代码&lt;/th&gt;&lt;th class=&quot;thbg thfont&quot;&gt;代码&lt;/th&gt;</span>
+<span class="s1">    &lt;th class=&quot;thbg thfont&quot;&gt;简称&lt;/th&gt;&lt;th class=&quot;thbg thfont&quot;&gt;趋势&lt;/th&gt;&lt;/tr&gt;&#39;&#39;&#39;</span>
+    <span class="c1"># 675*360might be fit</span>
+    <span class="n">img_html</span> <span class="o">=</span> <span class="s1">&#39;&#39;&#39;&lt;b&gt;&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;cid:image0&quot; </span>
+<span class="s1">                alt=&quot;strategy trend picture&quot;  width=&quot;695&quot; height=&quot;373&quot; </span>
+<span class="s1">                style=&quot;display:block;font-family:Arial;&quot;&gt;&lt;/div&gt;&lt;/b&gt;</span>
+<span class="s1">                &lt;b&gt;&lt;div align=&quot;center&quot;&gt;&lt;img src=&quot;cid:image1&quot; </span>
+<span class="s1">                alt=&quot;strategy trend picture&quot;  width=&quot;695&quot; height=&quot;373&quot; </span>
+<span class="s1">                style=&quot;display:block;font-family:Arial;&quot;&gt;&lt;/div&gt;&lt;/b&gt;&#39;&#39;&#39;</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">buildHTML</span><span class="p">(</span><span class="n">chg_html</span><span class="p">,</span> <span class="n">chg_html</span><span class="p">,</span> <span class="n">chg_html</span><span class="p">,</span> <span class="n">chg_html</span><span class="p">,</span> <span class="n">img_html</span><span class="p">,</span> <span class="s2">&quot;2018年10月13日&quot;</span><span class="p">)</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">imageHTML</span><span class="p">([</span><span class="sa">r</span><span class="s2">&quot;C:\Users\zhangchangsheng\Desktop\graph_trend\BS_0003.HK.png&quot;</span><span class="p">,</span>
+                    <span class="sa">r</span><span class="s2">&quot;C:\Users\zhangchangsheng\Desktop\graph_trend\BS_BABA.N.png&quot;</span><span class="p">])</span>
+    <span class="n">mail</span><span class="o">.</span><span class="n">setSend</span><span class="p">(</span><span class="s2">&quot;ptest&quot;</span><span class="p">,</span> <span class="s2">&quot;quant@winforcap.com&quot;</span><span class="p">,</span> <span class="s2">&quot;maggiefin@sina.com&quot;</span><span class="p">,</span> <span class="s2">&quot;Leed@1234&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="n">mail</span><span class="o">.</span><span class="n">isSent</span><span class="p">)</span>
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

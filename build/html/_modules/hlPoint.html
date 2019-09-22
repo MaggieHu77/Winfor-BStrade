@@ -1,0 +1,490 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hlPoint &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>hlPoint 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+<span class="kn">import</span> <span class="nn">constant</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">defindex</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">loadData</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">misc</span> <span class="k">import</span> <span class="n">printt</span>
+
+
+<div class="viewcode-block" id="HLPoint"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint">[文档]</a><span class="k">class</span> <span class="nc">HLPoint</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">klist</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">THRESH_D</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span> <span class="o">=</span> <span class="n">klist</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">thresh</span> <span class="o">=</span> <span class="n">thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confirm_p</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_lev</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="HLPoint.init_hl"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.init_hl">[文档]</a>    <span class="k">def</span> <span class="nf">init_hl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># 是否找到顶分型或底分型</span>
+        <span class="n">jj</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">flag</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="ow">and</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`init_hl`，找到顶分型，位置</span><span class="si">{jj}</span><span class="s2">;&quot;</span>
+                       <span class="n">f</span><span class="s2">&quot;当前寻找高点，待判定高点位置</span><span class="si">{jj}</span><span class="s2">,高点价位</span><span class="si">{self.klist[jj].high}</span><span class="s2">&quot;</span><span class="p">,</span>
+                       <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+                       <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="ow">and</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;l&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;l&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="n">jj</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="n">jj</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`init_hl`，找到底分型，位置</span><span class="si">{jj}</span><span class="s2">;&quot;</span>
+                       <span class="n">f</span><span class="s2">&quot;当前寻找低点，待判定低点位置</span><span class="si">{jj}</span><span class="s2">,低点价位</span><span class="si">{self.klist[jj].low}</span><span class="s2">&quot;</span><span class="p">,</span>
+                       <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+                       <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">jj</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="HLPoint.step_hl_s"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.step_hl_s">[文档]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">step_hl_s</span><span class="p">(</span><span class="n">next_hl</span><span class="p">,</span> <span class="n">temp_hl_t</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">temp_hl</span><span class="p">,</span> <span class="n">temp_m</span><span class="p">,</span>
+                  <span class="n">from_hl</span><span class="p">,</span> <span class="n">from_temp</span><span class="p">,</span> <span class="n">pre_high</span><span class="p">,</span>
+                  <span class="n">pre_low</span><span class="p">,</span> <span class="n">pre_high2</span><span class="p">,</span> <span class="n">pre_low2</span><span class="p">,</span> <span class="n">space_h</span><span class="p">,</span>
+                  <span class="n">space_l</span><span class="p">,</span> <span class="n">l2h</span><span class="p">,</span> <span class="n">h2l</span><span class="p">,</span> <span class="n">stamp</span><span class="p">,</span> <span class="n">thresh</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">THRESH_D</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="n">is_high</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">is_low</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">use_space</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">next_hl</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">high</span> <span class="o">&gt;</span> <span class="n">temp_hl</span><span class="p">:</span>
+                <span class="n">temp_hl</span> <span class="o">=</span> <span class="n">high</span>
+                <span class="n">temp_hl_t</span> <span class="o">=</span> <span class="n">stamp</span>
+                <span class="n">temp_m</span> <span class="o">=</span> <span class="n">low</span>
+                <span class="n">from_hl</span> <span class="o">+=</span> <span class="n">from_temp</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">from_temp</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">from_temp</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="n">temp_m</span><span class="p">:</span>
+                    <span class="n">temp_m</span> <span class="o">=</span> <span class="n">low</span>
+                    <span class="k">if</span> <span class="n">space_h</span> <span class="ow">and</span> <span class="nb">round</span><span class="p">((</span><span class="n">temp_m</span> <span class="o">-</span> <span class="n">temp_hl</span><span class="p">)</span> <span class="o">/</span> <span class="n">temp_hl</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="o">-</span> <span class="n">space_h</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_BUFFER</span><span class="p">:</span>
+                        <span class="n">use_space</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">use_space</span> <span class="ow">or</span> <span class="n">from_temp</span> <span class="o">&gt;=</span> <span class="n">thresh</span> <span class="ow">or</span> <span class="n">temp_m</span> <span class="o">&lt;</span> <span class="n">pre_low</span><span class="p">)</span> <span class="ow">and</span> <span class="n">temp_m</span> <span class="o">==</span> <span class="n">low</span><span class="p">:</span>
+                    <span class="n">is_high</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">next_hl</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">pre_high2</span> <span class="o">=</span> <span class="n">pre_high</span>
+                    <span class="n">pre_high</span> <span class="o">=</span> <span class="n">temp_hl</span>
+                    <span class="n">temp_hl</span> <span class="o">=</span> <span class="n">temp_m</span>
+                    <span class="n">temp_hl_t</span> <span class="o">=</span> <span class="n">stamp</span>
+                    <span class="n">temp_m</span> <span class="o">=</span> <span class="n">high</span>
+                    <span class="n">from_hl</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">from_temp</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">use_space</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:</span>
+                        <span class="n">space_l</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span><span class="p">,</span>
+                                                      <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">l2h</span><span class="p">[</span><span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]],</span>
+                                                      <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">l2h</span><span class="p">[</span><span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]])))</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">space_l</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span>
+                            <span class="n">space_l</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="n">temp_hl</span><span class="p">:</span>
+                <span class="n">temp_hl</span> <span class="o">=</span> <span class="n">low</span>
+                <span class="n">temp_hl_t</span> <span class="o">=</span> <span class="n">stamp</span>
+                <span class="n">temp_m</span> <span class="o">=</span> <span class="n">high</span>
+                <span class="n">from_hl</span> <span class="o">+=</span> <span class="n">from_temp</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">from_temp</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">from_temp</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">high</span> <span class="o">&gt;</span> <span class="n">temp_m</span><span class="p">:</span>
+                    <span class="n">temp_m</span> <span class="o">=</span> <span class="n">high</span>
+                    <span class="k">if</span> <span class="n">space_l</span> <span class="ow">and</span> <span class="p">(</span><span class="n">temp_m</span> <span class="o">-</span> <span class="n">temp_hl</span><span class="p">)</span> <span class="o">/</span> <span class="n">temp_hl</span> <span class="o">&gt;</span> <span class="n">space_l</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_BUFFER</span><span class="p">:</span>
+                        <span class="n">use_space</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">use_space</span> <span class="ow">or</span> <span class="n">from_temp</span> <span class="o">&gt;=</span> <span class="n">thresh</span> <span class="ow">or</span> <span class="n">temp_m</span> <span class="o">&gt;</span> <span class="n">pre_high</span><span class="p">)</span> <span class="ow">and</span> <span class="n">temp_m</span> <span class="o">==</span> <span class="n">high</span><span class="p">:</span>
+                    <span class="n">is_low</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">next_hl</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">pre_low2</span> <span class="o">=</span> <span class="n">pre_low</span>
+                    <span class="n">pre_low</span> <span class="o">=</span> <span class="n">temp_hl</span>
+                    <span class="n">temp_hl</span> <span class="o">=</span> <span class="n">temp_m</span>
+                    <span class="n">temp_hl_t</span> <span class="o">=</span> <span class="n">stamp</span>
+                    <span class="n">temp_m</span> <span class="o">=</span> <span class="n">low</span>
+                    <span class="n">from_hl</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">from_temp</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">use_space</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h2l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:</span>
+                        <span class="n">space_h</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">/</span> <span class="n">x</span><span class="p">,</span>
+                                                      <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">h2l</span><span class="p">],</span>
+                                                      <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">h2l</span><span class="p">])))</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">space_h</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span>
+                            <span class="n">space_h</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="n">next_hl</span> <span class="ow">and</span> <span class="n">from_hl</span> <span class="o">+</span> <span class="n">from_temp</span> <span class="o">&gt;=</span> <span class="n">constant</span><span class="o">.</span><span class="n">WAIT_DTO30</span><span class="p">:</span>
+            <span class="n">lev_chg_signal</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lev_chg_signal</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;next_hl&quot;</span><span class="p">:</span> <span class="n">next_hl</span><span class="p">,</span> <span class="s2">&quot;temp_hl&quot;</span><span class="p">:</span> <span class="n">temp_hl</span><span class="p">,</span>
+                <span class="s2">&quot;temp_m&quot;</span><span class="p">:</span> <span class="n">temp_m</span><span class="p">,</span> <span class="s2">&quot;from_hl&quot;</span><span class="p">:</span> <span class="n">from_hl</span><span class="p">,</span>
+                <span class="s2">&quot;from_temp&quot;</span><span class="p">:</span> <span class="n">from_temp</span><span class="p">,</span> <span class="s2">&quot;use_space&quot;</span><span class="p">:</span> <span class="n">use_space</span><span class="p">,</span>
+                <span class="s2">&quot;space_h&quot;</span><span class="p">:</span> <span class="n">space_h</span><span class="p">,</span> <span class="s2">&quot;space_l&quot;</span><span class="p">:</span> <span class="n">space_l</span><span class="p">,</span>
+                <span class="s2">&quot;is_high&quot;</span><span class="p">:</span> <span class="n">is_high</span><span class="p">,</span> <span class="s2">&quot;is_low&quot;</span><span class="p">:</span> <span class="n">is_low</span><span class="p">,</span>
+                <span class="s2">&quot;lev_chg_signal&quot;</span><span class="p">:</span> <span class="n">lev_chg_signal</span><span class="p">,</span>
+                <span class="s2">&quot;pre_high&quot;</span><span class="p">:</span> <span class="n">pre_high</span><span class="p">,</span> <span class="s2">&quot;pre_low&quot;</span><span class="p">:</span> <span class="n">pre_low</span><span class="p">,</span>
+                <span class="s2">&quot;pre_high2&quot;</span><span class="p">:</span> <span class="n">pre_high2</span><span class="p">,</span> <span class="s2">&quot;pre_low2&quot;</span><span class="p">:</span> <span class="n">pre_low2</span><span class="p">,</span>
+                <span class="s2">&quot;temp_hl_t&quot;</span><span class="p">:</span> <span class="n">temp_hl_t</span><span class="p">}</span></div>
+
+<div class="viewcode-block" id="HLPoint.step_hl"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.step_hl">[文档]</a>    <span class="k">def</span> <span class="nf">step_hl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wait_thresh</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">WAIT_DTO30</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        完成导入回测期全部K线数据并创建K对象实例list后，在第二次从头遍历K对象实例时的每步迭代函数</span>
+<span class="sd">        需要完成以下任务：</span>
+<span class="sd">        / 1.将当前高低点对象实例维护的全局状态域赋值给当前遍历的K对象实例的自有对应域</span>
+<span class="sd">        :param wait_thresh:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hpi</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lpi</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hl</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
+                <span class="c1"># 在找高点过程中出现新高，则转换当前高点为待判定高点，自新高（当前K）回调最低点为当前K</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span>
+                    <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                           <span class="n">f</span><span class="s2">&quot;寻高点过程出现新高，新待判定高点位置</span><span class="si">{self.temp_h}</span><span class="s2">，&quot;</span>
+                           <span class="n">f</span><span class="s2">&quot;新高点价位</span><span class="si">{self.klist[self.cursor].high}</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                           <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># 如果找高点过程中未出现新高</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span>
+                    <span class="c1"># 如果自待判定高点回调以来出现新低</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">:</span>
+                        <span class="c1"># 则当前K为回调新低</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span>
+                        <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;寻高点过程出现自待判定高点以来回调新低，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;新低位置</span><span class="si">{self.cursor}</span><span class="s2">,点位</span><span class="si">{self.klist[self.cursor].low}</span><span class="s2">&quot;</span><span class="p">,</span>
+                               <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                               <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                        <span class="c1"># 判断是否满足以”空间回撤“大小提前（相对于回调时间长度条件）判定高点的条件</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="ow">and</span> \
+                                <span class="nb">round</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">-</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> \
+                                <span class="o">&lt;</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_BUFFER</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span>
+                            <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                                   <span class="n">f</span><span class="s2">&quot;寻高点过程满足空间判定条件，可确认高点&quot;</span><span class="p">,</span>
+                                   <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                                   <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thresh</span> <span class="ow">or</span>
+                            <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lpi</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">lpi</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">low</span><span class="p">)</span> <span class="ow">and</span>\
+                            <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">:</span>
+                        <span class="c1"># 判定高点的3个条件：</span>
+                        <span class="c1"># / 0.当前K为自待判定高点以来回调最低点</span>
+                        <span class="c1">#  以下条件三选一：</span>
+                        <span class="c1"># / 1.当前K距离带判定高点（时间，指有效日K线数）距离超过阈值--&gt;时间判定</span>
+                        <span class="c1"># / 2.当前K的最低价距离待判定高点最高价回调幅度超过阈值--&gt;空间判定</span>
+                        <span class="c1"># / 3.当前K的最低价已经跌破前被确认低点的最低价--&gt;跌破前低判定</span>
+                        <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;确认高点，高点位置</span><span class="si">{self.temp_h}</span><span class="s2">,高点价位&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;</span><span class="si">{self.klist[self.temp_h].high}</span><span class="s2">；当前位置</span><span class="si">{self.cursor}</span><span class="s2">，转为寻低点&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;过程，待判定低点价位</span><span class="si">{self.klist[self.cursor].low}</span><span class="s2">&quot;</span><span class="p">,</span>
+                               <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+                               <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span><span class="p">]</span><span class="o">.</span><span class="n">hl_confirmed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">confirm_hl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">confirm_p</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">)</span>
+                        <span class="c1"># 将全局状态转变为寻找低点相关</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;l&quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hpi</span><span class="p">)</span>
+                        <span class="c1"># 计算从低点到高点的上涨平均空间水平，是为下一次确认低点的条件2做准备</span>
+                        <span class="n">l2h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l2h</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">l2h</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span>
+                                                                                  <span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">,</span>
+                                               <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">l2h</span><span class="p">[</span><span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]],</span> <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span>
+                                                                                   <span class="n">l2h</span><span class="p">[</span>
+                                                                                   <span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]])))</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span> <span class="o">=</span> <span class="mf">0.0</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                                       <span class="n">f</span><span class="s2">&quot;存在低点确认可参考空间涨幅</span><span class="si">{self.space_l}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                       <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                                       <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># 在找低点过程中</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">:</span>
+                    <span class="c1"># 当前出现跌破待判定低点的前低，更新当前K为待判定低点</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span>
+                    <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                           <span class="n">f</span><span class="s2">&quot;寻低点过程出现新低，新待判定低点位置</span><span class="si">{self.temp_l}</span><span class="s2">，&quot;</span>
+                           <span class="n">f</span><span class="s2">&quot;新低点价位</span><span class="si">{self.klist[self.cursor].low}</span><span class="s2">&quot;</span><span class="p">,</span>
+                           <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                           <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">:</span>
+                        <span class="c1"># 当前出现自待判定低点上涨以来新高，更新当前K为上涨新高</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span>
+                        <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;寻低点过程出现自待判定低点以来上涨新高，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;新高位置</span><span class="si">{self.cursor}</span><span class="s2">,点位</span><span class="si">{self.klist[self.cursor].high}</span><span class="s2">&quot;</span><span class="p">,</span>
+                               <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                               <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span> <span class="ow">and</span> \
+                                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">-</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">]</span><span class="o">.</span><span class="n">low</span> <span class="o">&gt;</span> \
+                                <span class="bp">self</span><span class="o">.</span><span class="n">space_l</span><span class="o">*</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_BUFFER</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span>
+                            <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                                   <span class="n">f</span><span class="s2">&quot;寻低点过程满足空间判定条件，可确认低点&quot;</span><span class="p">,</span>
+                                   <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                                   <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">thresh</span> <span class="ow">or</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hpi</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span><span class="p">]</span><span class="o">.</span><span class="n">high</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">hpi</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">high</span><span class="p">)</span> <span class="ow">and</span>\
+                            <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">:</span>
+                        <span class="c1"># 确认低点的前提条件（条件0）和其他三个任选条件与确认高点是镜像问题</span>
+                        <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;确认低点，低点位置</span><span class="si">{self.temp_l}</span><span class="s2">,低点价位&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;</span><span class="si">{self.klist[self.temp_l].low}</span><span class="s2">；当前位置</span><span class="si">{self.cursor}</span><span class="s2">，转为寻高点&quot;</span>
+                               <span class="n">f</span><span class="s2">&quot;过程，待判定高点价位</span><span class="si">{self.klist[self.cursor].high}</span><span class="s2">&quot;</span><span class="p">,</span>
+                               <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+                               <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span><span class="p">]</span><span class="o">.</span><span class="n">hl_confirmed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">confirm_hl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">confirm_p</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">)</span>
+                        <span class="c1"># 将全局状态转换为找高点</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s2">&quot;h&quot;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="s1">&#39;h&#39;</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lpi</span><span class="p">)</span>
+                        <span class="n">h2l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">h2l</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">h2l</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span>
+                                                                                  <span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">y</span><span class="p">]</span><span class="o">.</span><span class="n">low</span><span class="p">)</span> <span class="o">/</span>
+                                                                            <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="n">x</span><span class="p">]</span><span class="o">.</span><span class="n">high</span><span class="p">,</span>
+                                               <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">h2l</span><span class="p">[</span><span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]],</span> <span class="p">[</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">h2l</span><span class="p">[</span>
+                                                                                            <span class="o">-</span><span class="n">constant</span><span class="o">.</span><span class="n">AVG_N</span><span class="p">:]])))</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="mi">3</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">space_h</span> <span class="o">=</span> <span class="mf">0.0</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">printt</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;##`step_hl-</span><span class="si">{constant.K_LEV_DICT[self.k_lev]}</span><span class="s2">`，&quot;</span>
+                                       <span class="n">f</span><span class="s2">&quot;存在高点确认可参考空间涨幅</span><span class="si">{self.space_h}</span><span class="s2">&quot;</span><span class="p">,</span>
+                                       <span class="n">msg_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RunMode</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+                                       <span class="n">global_mode</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">RUN_MODE</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">==</span> <span class="s2">&quot;h&quot;</span><span class="p">:</span>
+                <span class="c1"># 对于找高点的升频条件判定，如果超过等待时间还不能确认高点，发出级别降低提示</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lpi</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lev_chg_signal</span> <span class="o">=</span> \
+                        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lpi</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;=</span> <span class="n">wait_thresh</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="p">]</span><span class="o">.</span><span class="n">lev_chg_signal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">&gt;=</span> <span class="n">wait_thresh</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="HLPoint.l2h"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.l2h">[文档]</a>    <span class="k">def</span> <span class="nf">l2h</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">l2h</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">hpi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span>
+        <span class="n">lpi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hpi</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lpi</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">lpi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">hpi</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">hpi</span> <span class="o">=</span> <span class="n">hpi</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hpi</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">lpi</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">l2h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">lpi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">hpi</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">l2h</span></div>
+
+<div class="viewcode-block" id="HLPoint.h2l"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.h2l">[文档]</a>    <span class="k">def</span> <span class="nf">h2l</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">h2l</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">hpi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span>
+        <span class="n">lpi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hpi</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">lpi</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">hpi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">lpi</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">lpi</span> <span class="o">=</span> <span class="n">lpi</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hpi</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">lpi</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="n">h2l</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">hpi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">lpi</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">h2l</span></div>
+
+<div class="viewcode-block" id="HLPoint.get_hl"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPoint.get_hl">[文档]</a>    <span class="k">def</span> <span class="nf">get_hl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">step_hl</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="HLPointMin"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPointMin">[文档]</a><span class="k">class</span> <span class="nc">HLPointMin</span><span class="p">(</span><span class="n">HLPoint</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">klist_m</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">thresh</span><span class="p">,</span> <span class="n">k_lev</span><span class="p">,</span> <span class="n">init_hl</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">        :param klist_m: 分钟K线序列</span>
+<span class="sd">        :param code: 股票代码</span>
+<span class="sd">        :param thresh: 高低点参数</span>
+<span class="sd">        :param k_lev: K线级别</span>
+<span class="sd">        :param init_hl: 给定初始高低点寻找目标，&quot;h&quot; or &quot;l&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">klist_m</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">thresh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">superior_stop</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k_lev</span> <span class="o">=</span> <span class="n">k_lev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="n">init_hl</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="mi">1</span>
+
+<div class="viewcode-block" id="HLPointMin.extend_klist"><a class="viewcode-back" href="../hlPoint.html#hlPoint.HLPointMin.extend_klist">[文档]</a>    <span class="k">def</span> <span class="nf">extend_klist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref_t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        扩展本级别分钟级别的数据</span>
+<span class="sd">        由于在降低级别回测过程中，由日线无法给出分钟级别的结束时间，因此为避免大量提取分钟数据的开销</span>
+<span class="sd">        采取随着遍历逐渐扩充数据长度的方法，设定初始提取长度，LEN_K30和LEN_K5每当剩余长度不足初始长度1/4时</span>
+<span class="sd">        提取新数据为原规定长度一半</span>
+<span class="sd">        :param ref_t: 对应参考的日线时间戳</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">len_k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">([</span><span class="n">constant</span><span class="o">.</span><span class="n">LEN_K5</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">LEN_K30</span> <span class="o">/</span> <span class="mi">2</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_lev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)])</span>
+        <span class="n">init_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">i</span><span class="o">.</span><span class="n">kti</span>
+        <span class="n">kti_seq</span> <span class="o">=</span> <span class="n">get_kti_seq</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">len_k</span><span class="p">)),</span> <span class="n">init_i</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">k_lev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">begin_time</span> <span class="o">=</span> <span class="n">ref_t</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_t</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">MIN30_STR</span><span class="p">[</span>
+                <span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="s2">&quot;15:00:00&quot;</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">ref_t</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">kti_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_t</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">MIN30_STR</span><span class="p">[</span>
+                <span class="n">kti_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="s2">&quot;15:00:00&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">begin_time</span> <span class="o">=</span> <span class="n">ref_t</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_t</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">MIN5_STR</span><span class="p">[</span>
+                <span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="s2">&quot;15:00:00&quot;</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">ref_t</span><span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">kti_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">ref_t</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">min</span><span class="p">(</span>
+                           <span class="n">constant</span><span class="o">.</span><span class="n">MIN5_STR</span><span class="p">[</span><span class="n">kti_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]][</span><span class="n">kti_seq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="s2">&quot;15:00:00&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">klist</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">loadData_min</span><span class="p">(</span><span class="n">begin_time</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">code</span><span class="p">,</span>
+                     <span class="n">end_time</span><span class="p">,</span>
+                     <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">30</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">k_lev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)],</span>
+                     <span class="n">kti_seq</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">kti</span><span class="p">))</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">klist</span><span class="o">=</span><span class="n">loadData_daily</span><span class="p">()</span>
+    <span class="n">hlp_env</span> <span class="o">=</span> <span class="n">HLPoint</span><span class="p">(</span><span class="n">klist</span><span class="p">,</span> <span class="s2">&quot;600519.SH&quot;</span><span class="p">)</span>
+    <span class="n">hlp_env</span><span class="o">.</span><span class="n">init_hl</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">hlp_env</span><span class="o">.</span><span class="n">cursor</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">hlp_env</span><span class="o">.</span><span class="n">klist</span><span class="p">):</span>
+        <span class="n">hlp_env</span><span class="o">.</span><span class="n">step_hl</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;high points index:</span><span class="si">{hlp_env.hpi}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;low points index:</span><span class="si">{hlp_env.lpi}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

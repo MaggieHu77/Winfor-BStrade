@@ -1,0 +1,442 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>monitor &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>monitor 源代码</h1><div class="highlight"><pre>
+<span></span><span class="ch">#! python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">trigger</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">apscheduler.schedulers.blocking</span> <span class="k">import</span> <span class="n">BlockingScheduler</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">logging.handlers</span> <span class="k">import</span> <span class="n">TimedRotatingFileHandler</span>
+<span class="kn">import</span> <span class="nn">locale</span>
+<span class="kn">from</span> <span class="nn">constant</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span><span class="p">,</span> <span class="n">makedirs</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">database</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">loadData</span> <span class="k">import</span> <span class="n">loaddataError</span>
+<span class="kn">from</span> <span class="nn">graph</span> <span class="k">import</span> <span class="n">runbacktest</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">hlPoint</span> <span class="k">import</span> <span class="n">HLPoint</span>
+<span class="kn">from</span> <span class="nn">trade</span> <span class="k">import</span> <span class="n">Trade</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">nan</span>
+<span class="kn">from</span> <span class="nn">WindPy</span> <span class="k">import</span> <span class="n">w</span>
+
+
+<span class="c1"># 设置运行日志记录</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%(asctime)s</span><span class="s2"> </span><span class="si">%(filename)s</span><span class="s2"> [lineno)d] </span><span class="si">%(levelname)s</span><span class="s2"> %(&quot;</span> <span class="s2">&quot;message)s&quot;</span><span class="p">,</span>
+    <span class="n">datefmt</span><span class="o">=</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">,</span>
+    <span class="c1"># filename=&quot;bsgui3_logging.txt&quot;,</span>
+    <span class="n">filemode</span><span class="o">=</span><span class="s2">&quot;a&quot;</span><span class="p">,</span>
+    <span class="c1"># handlers=TimedRotatingFileHandler(when=&quot;W0&quot;, backupCount=1)</span>
+<span class="p">)</span>
+<span class="n">mylogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+<span class="n">mylogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">TimedRotatingFileHandler</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;BStrade_logging.txt&quot;</span><span class="p">,</span> <span class="n">when</span><span class="o">=</span><span class="s2">&quot;W0&quot;</span><span class="p">,</span>
+                                             <span class="n">backupCount</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="Monitor"><a class="viewcode-back" href="../monitor.html#monitor.Monitor">[文档]</a><span class="k">class</span> <span class="nc">Monitor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 存放任务调度对象，在实盘监控模式下运行</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read_in</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_dir</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Monitor.read_in"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.read_in">[文档]</a>    <span class="k">def</span> <span class="nf">read_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        从文件中读入代码</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="nb">open</span><span class="p">(</span><span class="n">CODE_FILE</span><span class="p">):</span>
+            <span class="n">code</span> <span class="o">=</span> <span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">|;|,|/|&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">code</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Monitor.check_dir"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.check_dir">[文档]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_dir</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">WORK</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Warning: can&#39;t find work files address </span><span class="si">{WORK}</span><span class="s2">，creating this dir for you.&quot;</span><span class="p">)</span>
+            <span class="n">makedirs</span><span class="p">(</span><span class="n">WORK</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">GRAPH</span><span class="p">):</span>
+            <span class="n">makedirs</span><span class="p">(</span><span class="n">GRAPH</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">)):</span>
+            <span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Monitor.set_paint"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.set_paint">[文档]</a>    <span class="k">def</span> <span class="nf">set_paint</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">topaint</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">PAINT</span><span class="p">)</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">PAINT</span><span class="p">):</span>
+                <span class="n">topaint</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">PAINT</span><span class="p">)]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">PAINT</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">PAINT</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="s2">&quot;:&quot;</span> <span class="ow">in</span> <span class="n">PAINT</span><span class="p">:</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="n">PAINT</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pp</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">pp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;输入回测股票图像区间格式错误，期望m:n&quot;</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="p">):</span>
+                <span class="n">topaint</span><span class="p">[</span><span class="nb">int</span><span class="p">((</span><span class="n">pp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">pp</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s2">&quot;;&quot;</span> <span class="ow">in</span> <span class="n">PAINT</span><span class="p">:</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="n">PAINT</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;;&quot;</span><span class="p">)</span>
+            <span class="n">pp</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pp</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pp</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="p">:</span>
+                    <span class="n">topaint</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">topaint</span></div>
+
+<div class="viewcode-block" id="Monitor.init_stocks"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.init_stocks">[文档]</a>    <span class="k">def</span> <span class="nf">init_stocks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;select name from sqlite_master where type=&quot;table&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">table_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+        <span class="n">table_list1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">ii</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">table_list</span><span class="p">])</span>
+        <span class="c1"># 回测模式下，每次进入都重新更新</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">MODE</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tb</span> <span class="ow">in</span> <span class="n">table_list</span><span class="p">:</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;drop table if exists &quot;</span><span class="si">{tb}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="n">table_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">table_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;Strategy&quot;</span> <span class="ow">in</span> <span class="n">table_list</span><span class="p">:</span>
+                <span class="n">table_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Strategy&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_Strategy</span><span class="p">((),</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;Account&quot;</span> <span class="ow">in</span> <span class="n">table_list</span><span class="p">:</span>
+                <span class="n">table_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;Account&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">create_account</span><span class="p">((),</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span> <span class="k">if</span> <span class="n">ii</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table_list1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">create_Strategy</span><span class="p">((),</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="n">create_account</span><span class="p">((),</span> <span class="n">conn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---正在进行数据库初始化</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;---检测到{len(self.rerun_list)}需要初始化回测...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">topaint</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_paint</span><span class="p">()</span>
+            <span class="n">end_date</span> <span class="o">=</span> <span class="p">[</span><span class="n">END_DATE</span><span class="p">,</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)][</span><span class="n">MODE</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="n">runbacktest</span><span class="p">(</span>
+                        <span class="n">begin</span><span class="o">=</span><span class="n">BEGIN_DATE</span><span class="p">,</span>
+                        <span class="n">end</span><span class="o">=</span><span class="n">end_date</span><span class="p">,</span>
+                        <span class="n">codename</span><span class="o">=</span><span class="n">code</span><span class="p">,</span>
+                        <span class="nb">dir</span><span class="o">=</span><span class="n">GRAPH</span><span class="p">,</span>
+                        <span class="n">paint</span><span class="o">=</span><span class="n">topaint</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rerun_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">code</span><span class="p">)],</span>
+                        <span class="n">star</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+                <span class="k">except</span> <span class="n">loaddataError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">trd</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;strategy&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">trd</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;---Waring:</span><span class="si">{code}</span><span class="s2">趋势信息缺失，请检查回测结果；&quot;</span>
+                              <span class="n">f</span><span class="s2">&quot;继续运行策略将剔除该股票&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+                        <span class="k">continue</span>
+                <span class="n">create_stock_hl</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;hlp&quot;</span><span class="p">],</span> <span class="n">conn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+                <span class="n">create_stock_bs</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s2">&quot;bsp&quot;</span><span class="p">],</span> <span class="n">conn</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;delete from Strategy where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;insert into  Strategy values(?,?,?,?,?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;strategy&quot;</span><span class="p">])</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;delete from Account where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;insert into Account values(?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="s2">&quot;account&quot;</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---数据初始化完成&quot;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Monitor.set_sche"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.set_sche">[文档]</a>    <span class="k">def</span> <span class="nf">set_sche</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span> <span class="o">=</span> <span class="n">BlockingScheduler</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_daily</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">trigger</span><span class="o">=</span><span class="n">trigger41</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;daily K job&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_5min</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span>
+                          <span class="n">trigger</span><span class="o">=</span><span class="n">MultiCronTrigger</span><span class="p">([</span><span class="n">trigger21</span><span class="p">,</span> <span class="n">trigger22</span><span class="p">,</span> <span class="n">trigger23</span><span class="p">,</span>
+                                                    <span class="n">trigger24</span><span class="p">,</span> <span class="n">trigger25</span><span class="p">,</span> <span class="n">trigger26</span><span class="p">]),</span>
+                          <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;5min K job&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span><span class="o">.</span><span class="n">add_job</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_30min</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span>
+                          <span class="n">trigger</span><span class="o">=</span><span class="n">MultiCronTrigger</span><span class="p">([</span><span class="n">trigger31</span><span class="p">,</span> <span class="n">trigger32</span><span class="p">,</span> <span class="n">trigger33</span><span class="p">],</span> <span class="s2">&quot;30min&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">150</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">240</span><span class="p">)),</span>
+                          <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;30min K job&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sche</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Monitor.job_daily"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.job_daily">[文档]</a>    <span class="k">def</span> <span class="nf">job_daily</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">list_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">code_list</span>
+        <span class="k">if</span> <span class="n">list_d</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">w</span><span class="o">.</span><span class="n">isconnected</span><span class="p">():</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Monitor.job_30min"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.job_30min">[文档]</a>    <span class="k">def</span> <span class="nf">job_30min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select code from Strategy where operate_lev &gt; 1&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">list_30min</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="n">list_30min</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;30min job:{len(list_30min)}只股票待更新&quot;</span><span class="p">)</span>
+            <span class="n">stamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">w</span><span class="o">.</span><span class="n">isconnected</span><span class="p">():</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="n">begin_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">stamp</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">stamp</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">highs</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsi</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_30min</span><span class="p">),</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="n">begin_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="s2">&quot;barsize=30&quot;</span><span class="p">)</span>
+            <span class="n">tick</span> <span class="o">=</span> <span class="n">highs</span><span class="o">.</span><span class="n">Times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">highs</span> <span class="o">=</span> <span class="n">highs</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lows</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsi</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_30min</span><span class="p">),</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="n">begin_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="s2">&quot;barsize=30&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">list_30min</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;30min job:正在更新</span><span class="si">{code}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">tt_i</span> <span class="o">=</span> <span class="n">list_30min</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+                <span class="n">high</span> <span class="o">=</span> <span class="n">highs</span><span class="p">[</span><span class="n">tt_i</span><span class="p">]</span>
+                <span class="n">low</span> <span class="o">=</span> <span class="n">lows</span><span class="p">[</span><span class="n">tt_i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">high</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">low</span> <span class="ow">or</span> <span class="n">high</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">low</span> <span class="o">==</span> <span class="n">nan</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;30min job:更新中出现无效最高价和最低价数据，high:</span><span class="si">{high}</span><span class="s2">, low:</span><span class="si">{low}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="c1"># 高低点部分</span>
+                <span class="n">hlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_hlp</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="n">high</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="n">low</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="n">high</span> <span class="o">+</span> <span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)})</span>
+                <span class="n">hl_res</span> <span class="o">=</span> <span class="n">HLPoint</span><span class="o">.</span><span class="n">step_hl_s</span><span class="p">(</span><span class="o">**</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">],</span> <span class="n">stamp</span><span class="o">=</span><span class="n">tick</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hl_res</span><span class="p">[</span><span class="s2">&quot;is_high&quot;</span><span class="p">]:</span>
+                    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;HL_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl_t&quot;</span><span class="p">],</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl&quot;</span><span class="p">],</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;30min&quot;</span><span class="p">,</span> <span class="n">tick</span><span class="p">))</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="k">elif</span> <span class="n">hl_res</span><span class="p">[</span><span class="s2">&quot;is_low&quot;</span><span class="p">]:</span>
+                    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;HL_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl_t&quot;</span><span class="p">],</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl&quot;</span><span class="p">],</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;30min&quot;</span><span class="p">,</span> <span class="n">tick</span><span class="p">))</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="c1"># 买卖点部分</span>
+                <span class="n">bsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_trade</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">next_i</span> <span class="o">=</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;last_bs&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="n">account1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_account</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">account</span> <span class="o">=</span> <span class="n">Trade</span><span class="o">.</span><span class="n">Account</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="n">account1</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+                                        <span class="n">equity</span><span class="o">=</span><span class="n">account1</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">],</span>
+                                        <span class="n">cumu_r</span><span class="o">=</span><span class="n">account1</span><span class="p">[</span><span class="s2">&quot;cumu_r&quot;</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;operate_lev_sell&quot;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;pre_low&quot;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">bb</span> <span class="ow">in</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;order_l&quot;</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="n">bb</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                            <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                            <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">]</span>
+                            <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;cumu_r&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">account1</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">account1</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">INIT_FUND</span> <span class="o">-</span> <span class="mi">1</span>
+
+                            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;BS_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                        <span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">next_i</span><span class="p">,</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">],</span>
+                                         <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;S4&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">bb</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                            <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;update &#39;BS_</span><span class="si">{code}</span><span class="s1">&#39; set counter_opt=</span><span class="si">{next_i}</span><span class="s1"> where index=</span><span class="si">{bb[1]}</span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;operate_lev_buy&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="n">res_buy</span> <span class="o">=</span> <span class="n">Trade</span><span class="o">.</span><span class="n">seek_to_buy_s</span><span class="p">(</span><span class="n">pre_low</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;daily&quot;</span><span class="p">][</span><span class="s2">&quot;pre_low&quot;</span><span class="p">],</span> <span class="n">pre_high30</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;pre_high&quot;</span><span class="p">],</span>
+                                        <span class="n">pre_low30</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;pre_low&quot;</span><span class="p">],</span> <span class="n">num_h30</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;num_h30&quot;</span><span class="p">],</span>
+                                        <span class="n">num_l30</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;num_l30&quot;</span><span class="p">],</span> <span class="n">stamp</span><span class="o">=</span><span class="n">tick</span><span class="p">,</span> <span class="n">trend</span><span class="o">=</span><span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;trend&quot;</span><span class="p">],</span>
+                                        <span class="n">pre_trend</span><span class="o">=</span><span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;pre_trend&quot;</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="n">next_i</span><span class="p">,</span> <span class="n">account</span><span class="o">=</span><span class="n">account</span><span class="p">,</span>
+                                        <span class="n">high</span><span class="o">=</span><span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="n">low</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">],</span>
+                                        <span class="n">last_bs_typ</span><span class="o">=</span><span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;last_bs&quot;</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">res_buy</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="k">pass</span>
+
+
+
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Monitor.job_5min"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.job_5min">[文档]</a>    <span class="k">def</span> <span class="nf">job_5min</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">DATABASE</span><span class="p">,</span> <span class="n">isolation_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select code from Strategy where operate_lev = 3&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">list_5min</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="n">list_5min</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;5min job:{len(list_5min)}只股票待更新&quot;</span><span class="p">)</span>
+            <span class="n">stamp</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">w</span><span class="o">.</span><span class="n">isconnected</span><span class="p">():</span>
+                <span class="n">w</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="n">begin_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">stamp</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">210</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="p">(</span><span class="n">stamp</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">highs</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsi</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_5min</span><span class="p">),</span> <span class="s2">&quot;high&quot;</span><span class="p">,</span> <span class="n">begin_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="s2">&quot;barsize=5&quot;</span><span class="p">)</span>
+            <span class="n">tick</span> <span class="o">=</span> <span class="n">highs</span><span class="o">.</span><span class="n">Times</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+            <span class="n">highs</span> <span class="o">=</span> <span class="n">highs</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">lows</span> <span class="o">=</span> <span class="n">w</span><span class="o">.</span><span class="n">wsi</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">list_5min</span><span class="p">),</span> <span class="s2">&quot;low&quot;</span><span class="p">,</span> <span class="n">begin_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="s2">&quot;barsize=5&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">Data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">list_5min</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;5min job:正在更新</span><span class="si">{code}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">ff_i</span> <span class="o">=</span> <span class="n">list_5min</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+                <span class="n">high</span> <span class="o">=</span> <span class="n">highs</span><span class="p">[</span><span class="n">ff_i</span><span class="p">]</span>
+                <span class="n">low</span> <span class="o">=</span> <span class="n">lows</span><span class="p">[</span><span class="n">ff_i</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">high</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">low</span> <span class="ow">or</span> <span class="n">high</span> <span class="o">==</span> <span class="n">nan</span> <span class="ow">or</span> <span class="n">low</span> <span class="o">==</span> <span class="n">nan</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;5min job:更新中出现无效最高价和最低价数据，high:</span><span class="si">{high}</span><span class="s2">, low:</span><span class="si">{low}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="c1"># 高低点部分</span>
+                <span class="n">hlp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_hlp</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;high&quot;</span><span class="p">:</span> <span class="n">high</span><span class="p">,</span> <span class="s2">&quot;low&quot;</span><span class="p">:</span> <span class="n">low</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">((</span><span class="n">high</span> <span class="o">+</span> <span class="n">low</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)})</span>
+                <span class="n">hl_res</span> <span class="o">=</span> <span class="n">HLPoint</span><span class="o">.</span><span class="n">step_hl_s</span><span class="p">(</span><span class="o">**</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">],</span> <span class="n">stamp</span><span class="o">=</span><span class="n">tick</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">hl_res</span><span class="p">[</span><span class="s2">&quot;is_high&quot;</span><span class="p">]:</span>
+                    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;HL_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl_t&quot;</span><span class="p">],</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl&quot;</span><span class="p">],</span> <span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;5min&quot;</span><span class="p">,</span> <span class="n">tick</span><span class="p">))</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="k">elif</span> <span class="n">hl_res</span><span class="p">[</span><span class="s2">&quot;is_low&quot;</span><span class="p">]:</span>
+                    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;HL_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl_t&quot;</span><span class="p">],</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;temp_hl&quot;</span><span class="p">],</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;5min&quot;</span><span class="p">,</span> <span class="n">tick</span><span class="p">))</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">hl_res</span><span class="p">})</span>
+                <span class="c1"># 买卖点部分</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;pre_low&quot;</span><span class="p">]:</span>
+                    <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">low</span> <span class="o">&lt;</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;pre_low&quot;</span><span class="p">]:</span>
+                        <span class="n">bsp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_trade</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                        <span class="n">account</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wrap_account</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">bb</span> <span class="ow">in</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;order_l&quot;</span><span class="p">]:</span>
+                            <span class="k">if</span> <span class="n">bb</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                                <span class="n">account</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                                <span class="n">account</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span> <span class="o">-=</span> <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+                                <span class="n">account</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">account</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">]</span>
+                                <span class="n">account</span><span class="p">[</span><span class="s2">&quot;cumu_r&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">account</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">account</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">INIT_FUND</span> <span class="o">-</span> <span class="mi">1</span>
+                                <span class="n">sell_i</span> <span class="o">=</span> <span class="n">bsp</span><span class="p">[</span><span class="s2">&quot;last_bs&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+                                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &#39;BS_</span><span class="si">{code}</span><span class="s1">&#39; values(?,?,?,?,?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                            <span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">sell_i</span><span class="p">,</span> <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">][</span><span class="s2">&quot;price&quot;</span><span class="p">],</span>
+                                             <span class="n">bb</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;S5&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">bb</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                                <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;update &#39;BS_</span><span class="si">{code}</span><span class="s1">&#39; set counter_opt=</span><span class="si">{sell_i}</span><span class="s1"> where index=</span><span class="si">{bb[1]}</span><span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
+                        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;delete from Account where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+                        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into Account values(?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span>
+                                    <span class="p">(</span><span class="n">tick</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">account</span><span class="p">[</span><span class="s2">&quot;cash&quot;</span><span class="p">],</span> <span class="n">account</span><span class="p">[</span><span class="s2">&quot;volume&quot;</span><span class="p">],</span>
+                                     <span class="n">account</span><span class="p">[</span><span class="s2">&quot;equity&quot;</span><span class="p">],</span> <span class="n">account</span><span class="p">[</span><span class="s2">&quot;cumu_r&quot;</span><span class="p">]))</span>
+                        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;update Strategy set date=</span><span class="si">{tick}</span><span class="s1">, operate_lev=</span><span class="si">{bsp[&quot;operate_lev_buy&quot;]}</span><span class="s1">, </span>
+<span class="s1">                        operate_lev_sell=1, next_hl5=null, temp_hl_t5=null, temp_hl5=null, </span>
+<span class="s1">                        temp_m5=null, from_hl5=null, from_temp5=null, space_h5=null,</span>
+<span class="s1">                        space_l5=null, pre_high5=null, pre_low5=null&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Monitor.wrap_hlp"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.wrap_hlp">[文档]</a>    <span class="k">def</span> <span class="nf">wrap_hlp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select * from Strategy where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Col_stg</span><span class="p">,</span> <span class="n">cur</span><span class="o">.</span><span class="n">fethone</span><span class="p">()))</span>
+        <span class="n">hlp</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;daily&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;30min&quot;</span><span class="p">:</span> <span class="p">{},</span> <span class="s2">&quot;5min&quot;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;daily&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cc</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;d&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_d</span><span class="p">],</span>
+                                     <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">cc</span><span class="p">]</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_d</span><span class="p">])))</span>
+        <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cc</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;30&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_30</span><span class="p">],</span>
+                                      <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">cc</span><span class="p">]</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_30</span><span class="p">]))))</span>
+        <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">((</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="n">cc</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">&quot;5&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_5</span><span class="p">],</span>
+                                     <span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">cc</span><span class="p">]</span> <span class="k">for</span> <span class="n">cc</span> <span class="ow">in</span> <span class="n">Col_stg_hlp_5</span><span class="p">]))))</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select num_h30, num_l30, num_h5, num_l5 from Strategy where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;30min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;num_h30&quot;</span><span class="p">:</span> <span class="n">num</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;num_l30&quot;</span><span class="p">:</span> <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]})</span>
+        <span class="n">hlp</span><span class="p">[</span><span class="s2">&quot;5min&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;num_h5&quot;</span><span class="p">:</span> <span class="n">num</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;num_l5&quot;</span><span class="p">:</span> <span class="n">num</span><span class="p">[</span><span class="mi">3</span><span class="p">]})</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">hlp</span></div>
+
+<div class="viewcode-block" id="Monitor.wrap_account"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.wrap_account">[文档]</a>    <span class="k">def</span> <span class="nf">wrap_account</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select * from Account where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">account</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Col_stk_account</span><span class="p">,</span> <span class="n">cur</span><span class="o">.</span><span class="n">fethone</span><span class="p">()))</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">account</span></div>
+
+<div class="viewcode-block" id="Monitor.wrap_trade"><a class="viewcode-back" href="../monitor.html#monitor.Monitor.wrap_trade">[文档]</a>    <span class="k">def</span> <span class="nf">wrap_trade</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">bsp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select * from &quot;BS_</span><span class="si">{code}</span><span class="s1">&quot; order by date desc&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">bsp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;last_bs&quot;</span><span class="p">:</span> <span class="n">cur</span><span class="o">.</span><span class="n">fethone</span><span class="p">()})</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select * from &quot;BS_</span><span class="si">{code}</span><span class="s1">&quot; where type like &quot;B%&quot; and counter_opt&gt;0&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">bsp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;order_l&quot;</span><span class="p">:</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()})</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;select operate_lev, operate_lev_buy, operate_lev_sell, trend, pre_trend from Strategy </span>
+<span class="s1">        where code=&quot;</span><span class="si">{code}</span><span class="s1">&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+        <span class="n">bsp</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">([</span><span class="s2">&quot;operate_lev&quot;</span><span class="p">,</span> <span class="s2">&quot;operate_lev_buy&quot;</span><span class="p">,</span> <span class="s2">&quot;operate_lev_sell&quot;</span><span class="p">,</span> <span class="s2">&quot;trend&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_trend&quot;</span><span class="p">],</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">())))</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">bsp</span></div></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">monitor</span> <span class="o">=</span> <span class="n">Monitor</span><span class="p">()</span>
+    <span class="n">monitor</span><span class="o">.</span><span class="n">init_stocks</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">MODE</span><span class="p">:</span>
+        <span class="n">monitor</span><span class="o">.</span><span class="n">set_sche</span><span class="p">()</span>
+
+
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

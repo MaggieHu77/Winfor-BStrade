@@ -1,0 +1,163 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>K &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>K 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">定义K线类父类模板</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="K"><a class="viewcode-back" href="../K.html#K.K">[文档]</a><span class="k">class</span> <span class="nc">K</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">close</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">dhl</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">         创建K线实例</span>
+<span class="sd">        #:param code: str股票代码</span>
+<span class="sd">        :param high: float最高价</span>
+<span class="sd">        :param low: float最低价</span>
+<span class="sd">        :param close: float收盘价</span>
+<span class="sd">        :param i: Kti序号标记</span>
+<span class="sd">        :param lev: intK线级别</span>
+<span class="sd">        :param time: str时间戳</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1">#self.code = code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">high</span> <span class="o">=</span> <span class="n">high</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">low</span> <span class="o">=</span> <span class="n">low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span> <span class="o">=</span> <span class="n">close</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">i</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lev</span> <span class="o">=</span> <span class="n">lev</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="n">time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hl</span> <span class="o">=</span> <span class="n">dhl</span>  <span class="c1"># 运行到当前K线对象时，日线级别当前待判定高点还是低点</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># 运行到当前K线对象时，本级别已出现的高点序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># 运行到当前K线对象时，本级别已出现的低点序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_l</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 运行到当前K线对象时，待判定低点的序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_h</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 运行到当前K线对象时，待判定高点的序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_min</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 运行到当前K线对象时，自待判定高点（self.temp_h有效）开始回调的最低点序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temp_max</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 运行到当前K线对象时，自待判定低点（self.temp_l有效）开始回调的最高点序号</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># 是否满足空间高低点判定条件</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bs_info</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trd</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre_trd</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hl_confirmed</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># 当前高点（低点）被确认时的K线索引</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confirm_hl</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lev_chg_signal</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="K.add_hpi"><a class="viewcode-back" href="../K.html#K.K.add_hpi">[文档]</a>    <span class="k">def</span> <span class="nf">add_hpi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hpi</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="n">hpi</span></div>
+
+<div class="viewcode-block" id="K.add_lpi"><a class="viewcode-back" href="../K.html#K.K.add_lpi">[文档]</a>    <span class="k">def</span> <span class="nf">add_lpi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lpi</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="n">lpi</span></div>
+
+<div class="viewcode-block" id="K.trade_info"><a class="viewcode-back" href="../K.html#K.K.trade_info">[文档]</a>    <span class="k">def</span> <span class="nf">trade_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trd_idx</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">price</span><span class="p">,</span> <span class="n">volume</span><span class="p">,</span> <span class="n">stop_p</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        记录交易信息</span>
+<span class="sd">        :param trd_idx: 交易操作序号</span>
+<span class="sd">        :param typ: 交易类型</span>
+<span class="sd">        :param price: 成交价格</span>
+<span class="sd">        :param volume: 交易量（手）</span>
+<span class="sd">        :param stop_p: 可能的止损止盈价位</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bs_info</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;trd_idx&quot;</span><span class="p">:</span> <span class="n">trd_idx</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="n">typ</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="n">price</span><span class="p">,</span>
+                         <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="n">volume</span><span class="p">,</span> <span class="s2">&quot;stop_p&quot;</span><span class="p">:</span> <span class="n">stop_p</span><span class="p">,</span> <span class="s2">&quot;lev&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lev</span><span class="p">}</span></div></div>
+
+
+<div class="viewcode-block" id="K30"><a class="viewcode-back" href="../K.html#K.K30">[文档]</a><span class="k">class</span> <span class="nc">K30</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">close</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">hl</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">close</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">hl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="K5"><a class="viewcode-back" href="../K.html#K.K5">[文档]</a><span class="k">class</span> <span class="nc">K5</span><span class="p">(</span><span class="n">K</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">close</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">hl</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">close</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">hl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lpi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_space</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

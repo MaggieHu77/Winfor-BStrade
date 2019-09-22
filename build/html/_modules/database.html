@@ -1,0 +1,223 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>database &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>database 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding:utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">Col_stg</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;trend&quot;</span><span class="p">,</span> <span class="s2">&quot;next_hl&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;temp_hl&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hld_t&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_m&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hl&quot;</span><span class="p">,</span>
+           <span class="s2">&quot;from_temp&quot;</span><span class="p">,</span> <span class="s2">&quot;use_space&quot;</span><span class="p">,</span> <span class="s2">&quot;space_h&quot;</span><span class="p">,</span> <span class="s2">&quot;space_l&quot;</span><span class="p">,</span> <span class="s2">&quot;trend&quot;</span><span class="p">]</span>
+<span class="n">Col_stg_hlp_d</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;next_hl&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl_td&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_m&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hl&quot;</span><span class="p">,</span> <span class="s2">&quot;from_temp&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;space_h&quot;</span><span class="p">,</span> <span class="s2">&quot;space_l&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_high&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_low&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_high2&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_low2&quot;</span><span class="p">]</span>
+<span class="n">Col_stg_hlp_30</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;next_hl30&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl_t30&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl30&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_m30&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hl30&quot;</span><span class="p">,</span> <span class="s2">&quot;from_temp30&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;space_h30&quot;</span><span class="p">,</span> <span class="s2">&quot;space_l30&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_high30&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_low30&quot;</span><span class="p">]</span>
+<span class="n">Col_stg_hlp_5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;next_hl5&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl_t5&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_hl5&quot;</span><span class="p">,</span> <span class="s2">&quot;temp_m5&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hl5&quot;</span><span class="p">,</span> <span class="s2">&quot;from_temp5&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;space_h5&quot;</span><span class="p">,</span> <span class="s2">&quot;space_l5&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_high5&quot;</span><span class="p">,</span> <span class="s2">&quot;pre_low5&quot;</span><span class="p">]</span>
+<span class="n">Col_stk_hl</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">,</span> <span class="s2">&quot;hl&quot;</span><span class="p">,</span> <span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="s2">&quot;confirmed_date&quot;</span><span class="p">]</span>
+<span class="n">Col_stk_bs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;price&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_p&quot;</span><span class="p">,</span> <span class="s2">&quot;max_r&quot;</span><span class="p">,</span> <span class="s2">&quot;cumu_r&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;lev_chg&quot;</span><span class="p">,</span> <span class="s2">&quot;counter_opt&quot;</span><span class="p">]</span>
+<span class="n">Col_stk_account</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="s2">&quot;code&quot;</span><span class="p">,</span> <span class="s2">&quot;cash&quot;</span><span class="p">,</span> <span class="s2">&quot;volume&quot;</span><span class="p">,</span> <span class="s2">&quot;equity&quot;</span><span class="p">,</span> <span class="s2">&quot;cumu_r&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="create_Strategy"><a class="viewcode-back" href="../database.html#database.create_Strategy">[文档]</a><span class="k">def</span> <span class="nf">create_Strategy</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    创建样本股票的高低点和趋势汇总表</span>
+
+<span class="sd">    :param tup_list: 每个tuple包含12个变量</span>
+<span class="sd">                     date:最新日期</span>
+<span class="sd">                     code:股票代码或名称</span>
+<span class="sd">                     name:股票简称</span>
+<span class="sd">                     trend:当前趋势</span>
+<span class="sd">                     next_hl:下一个将出现的是高点=1或低点=0</span>
+<span class="sd">                     temp_hl:待判定高点或低点的价位</span>
+<span class="sd">                     temp_m:待判定高点或低点以来的最低位或最高位</span>
+<span class="sd">                     from_hl:待判定高点或低点距离前一个确认的低点或高点的交易天数</span>
+<span class="sd">                     from_temp:当前距离待判定高点或低点的交易天数</span>
+<span class="sd">                     use_space:是否满足空间高低点使用条件</span>
+<span class="sd">                     space_h:回调平均幅度</span>
+<span class="sd">                     space_l:反弹平均幅度</span>
+<span class="sd">    :param conn: 数据库connection实例</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">sql_del</span> <span class="o">=</span> <span class="s2">&quot;drop table if exists Strategy_s&quot;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_del</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;create table Strategy_s (date varchar(30), code varchar(20) primary key, name text,</span>
+<span class="sd">        trend text, next_hl integer, temp_hl real, temp_m real, from_hl integer, from_temp integer, use_space integer,</span>
+<span class="sd">        space_h real, space_l real)&#39;&#39;&#39;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;BEGIN TRANSACTION&quot;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;insert into Strategy_s values (?,?,?,?,?,?,?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">tup_list</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;COMMIT&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="create_stock_hl"><a class="viewcode-back" href="../database.html#database.create_stock_hl">[文档]</a><span class="k">def</span> <span class="nf">create_stock_hl</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">codename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    创建股票历史高低点信息分表</span>
+<span class="sd">    :param tup_list:每个tuple包含5个变量</span>
+<span class="sd">                    date:日期</span>
+<span class="sd">                    price:价格</span>
+<span class="sd">                    hl:高低点标记，高点=H，低点=L</span>
+<span class="sd">                    level:级别</span>
+<span class="sd">                    confirmed_date:判定日期</span>
+<span class="sd">    :param conn:数据库connection实例</span>
+<span class="sd">    :param codename:股票代码</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">sql_del</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;drop table if exists &quot;HL_</span><span class="si">{codename}</span><span class="s1">&quot;&#39;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_del</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;create table &quot;HL_</span><span class="si">{codename}</span><span class="s1">&quot; (date text, price real, </span>
+<span class="s1">    hl text, level text, confirmed_date text)&#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;BEGIN TRANSACTION&quot;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &quot;HL_</span><span class="si">{codename}</span><span class="s1">&quot; values (?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">tup_list</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;COMMIT&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="create_stock_bs"><a class="viewcode-back" href="../database.html#database.create_stock_bs">[文档]</a><span class="k">def</span> <span class="nf">create_stock_bs</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">conn</span><span class="p">,</span> <span class="n">codename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    创建股票历史买卖点信息分表</span>
+<span class="sd">    :param tup_list:</span>
+<span class="sd">    :param conn:</span>
+<span class="sd">    :param codename:</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">sql_del</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;drop table if exists &#39;BS_</span><span class="si">{codename}</span><span class="s2">&#39;&quot;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_del</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;create table &quot;BS_</span><span class="si">{codename}</span><span class="s1">&quot; (date text, </span>
+<span class="s1">    index int, price real, volume integer, type text, stop_p real, </span>
+<span class="s1">    max_r real, cumu_r real, lev_chg integer, counter_opt integer)&#39;&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;BEGIN TRANSACTION&quot;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;&#39;&#39;insert into &quot;BS_</span><span class="si">{codename}</span><span class="s1">&quot; values(?,?,?,?,?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">tup_list</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;COMMIT&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="create_account"><a class="viewcode-back" href="../database.html#database.create_account">[文档]</a><span class="k">def</span> <span class="nf">create_account</span><span class="p">(</span><span class="n">tup_list</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+    <span class="n">cur</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="n">sql_del</span> <span class="o">=</span> <span class="s2">&quot;drop table if exists Account&quot;</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql_del</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+        <span class="sd">&#39;&#39;&#39;create table Account (date varchar(30), code varchar(20) primary key, cash real,</span>
+<span class="sd">        volume integer, equity real, cumu_r real)&#39;&#39;&#39;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">tup_list</span><span class="p">:</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;BEGIN TRANSACTION&quot;</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;insert into Strategy_s values (?,?,?,?,?,?)&#39;&#39;&#39;</span><span class="p">,</span> <span class="n">tup_list</span><span class="p">)</span>
+        <span class="n">cur</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;COMMIT&quot;</span><span class="p">)</span>
+    <span class="n">cur</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="code_helper"><a class="viewcode-back" href="../database.html#database.code_helper">[文档]</a><span class="k">def</span> <span class="nf">code_helper</span><span class="p">(</span><span class="n">codename</span><span class="p">,</span> <span class="n">rev</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    由于数据库的表名不能够以数字开头，以股票代码命名表的时候需要转换格式</span>
+<span class="sd">    eg:000001.SH--&gt;SH000001, 0001.HK--&gt;HK0001, BABA--&gt;BABA</span>
+
+<span class="sd">    :param codename: 股票代码</span>
+<span class="sd">    :param rev: 是否是逆转表名为代码名</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rev</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">codename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="n">name</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+            <span class="n">codename</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">codename</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+            <span class="n">res</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;([\w]</span><span class="si">{2}</span><span class="s2">)([\d]+)&quot;</span><span class="p">,</span> <span class="n">codename</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="p">[</span><span class="n">res</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="n">res</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+            <span class="n">codename</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">codename</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">code_helper</span><span class="p">(</span><span class="s2">&quot;BABA.N&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

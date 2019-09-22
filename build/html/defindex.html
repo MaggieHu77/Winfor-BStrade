@@ -1,0 +1,170 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>defindex module &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-defindex">
+<span id="defindex-module"></span><h1>defindex module<a class="headerlink" href="#module-defindex" title="永久链接至标题">¶</a></h1>
+<p>定义K线时间类，及其转换关系</p>
+<dl class="class">
+<dt id="defindex.Kn">
+<em class="property">class </em><code class="descclassname">defindex.</code><code class="descname">Kn</code><span class="sig-paren">(</span><em>n</em>, <em>lev</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kn"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kn" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="staticmethod">
+<dt id="defindex.Kn.v_to_kn">
+<em class="property">static </em><code class="descname">v_to_kn</code><span class="sig-paren">(</span><em>v</em>, <em>lev</em>, <em>n_30=8</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kn.v_to_kn"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kn.v_to_kn" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="defindex.Kti">
+<em class="property">class </em><code class="descclassname">defindex.</code><code class="descname">Kti</code><span class="sig-paren">(</span><em>n_30=8</em>, <em>*i</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kti"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kti" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="attribute">
+<dt id="defindex.Kti.O">
+<code class="descname">O</code><em class="property"> = (0, 0, -1)</em><a class="headerlink" href="#defindex.Kti.O" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="defindex.Kti.inv_value">
+<em class="property">static </em><code class="descname">inv_value</code><span class="sig-paren">(</span><em>v</em>, <em>n_30</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kti.inv_value"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kti.inv_value" title="永久链接至目标">¶</a></dt>
+<dd><p>Kpi标准化表达形式的tuple kpi
+:param v: Kpi object的value
+:return: tuple kpi</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defindex.Kti.scalar_add">
+<code class="descname">scalar_add</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kti.scalar_add"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kti.scalar_add" title="永久链接至目标">¶</a></dt>
+<dd><p>元素对元素位加法
+:param other: 对应元素
+:return: tuple</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defindex.Kti.scalar_sub">
+<code class="descname">scalar_sub</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kti.scalar_sub"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kti.scalar_sub" title="永久链接至目标">¶</a></dt>
+<dd><p>元素对元素位减法
+:param other: 对应元素
+:return: tuple</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="defindex.Kti.value">
+<code class="descname">value</code><span class="sig-paren">(</span><em>*kti</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#Kti.value"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.Kti.value" title="永久链接至目标">¶</a></dt>
+<dd><p>Kpi object的值
+:param kti: tuple
+:return: int value</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="defindex.get_kti_seq">
+<code class="descclassname">defindex.</code><code class="descname">get_kti_seq</code><span class="sig-paren">(</span><em>seq</em>, <em>init_p</em>, <em>n_30</em>, <em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/defindex.html#get_kti_seq"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#defindex.get_kti_seq" title="永久链接至目标">¶</a></dt>
+<dd><p>helper function将自然序列排序的分钟级别数据转化为Kti实例index</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">参数:</th><td class="field-body"><ul class="first simple">
+<li><strong>seq</strong> – 自然序列编号</li>
+<li><strong>init_p</strong> – 设定第一个点的Kti格式编号</li>
+<li><strong>n_30</strong> – 一个交易日中有n_30个30min数据</li>
+<li><strong>value</strong> – 一个数据单位的Kti值，30min数据为N_5, 5min数据为1，日线数据为n_30*N_5</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">返回:</th><td class="field-body"><p class="first last"></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/defindex.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/defindex.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,235 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>constant &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>constant 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+
+
+<span class="c1"># 定义枚举类</span>
+<div class="viewcode-block" id="RunMode"><a class="viewcode-back" href="../constant.html#constant.RunMode">[文档]</a><span class="k">class</span> <span class="nc">RunMode</span><span class="p">:</span>
+    <span class="n">INFO</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">DEBUG</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">REPORT</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">ISSUE</span> <span class="o">=</span> <span class="mi">4</span></div>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">定义默认的重要参数，此处定义参数皆可用户自定义</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="c1"># 运行模式，主要控制打印内容，简易logging</span>
+<span class="n">RUN_MODE</span> <span class="o">=</span> <span class="n">RunMode</span><span class="o">.</span><span class="n">ISSUE</span>
+<span class="c1"># 日线结构高低点间隔</span>
+<span class="n">THRESH_D</span> <span class="o">=</span> <span class="mi">13</span>
+<span class="c1"># 30min结构高低点</span>
+<span class="n">THRESH_30</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="c1"># 5min结构高低点</span>
+<span class="n">THRESH_5</span> <span class="o">=</span> <span class="mi">18</span>
+<span class="c1"># 以前N次回调或反弹幅度均值为判定高低点的限制</span>
+<span class="n">AVG_N</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="c1"># 前N次回调或反弹幅度均值调和参数</span>
+<span class="n">AVG_BUFFER</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="c1"># 空间趋势转换最小间隔</span>
+<span class="n">TREND_REV</span> <span class="o">=</span> <span class="mi">65</span>
+<span class="c1"># 日线上买点最高涨幅限制</span>
+<span class="n">MAX_UPFLOAT</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="c1"># 日线转入30min级别最小等待时间</span>
+<span class="n">WAIT_DTO30</span> <span class="o">=</span> <span class="mi">55</span>
+<span class="c1"># 30min级别转入5min级别最小等待时间</span>
+<span class="n">WAIT_30TO5</span> <span class="o">=</span> <span class="mi">65</span>
+<span class="c1"># 适用止盈点的浮盈最低要求</span>
+<span class="n">THRESH_PROFIT</span> <span class="o">=</span> <span class="mf">0.15</span>
+<span class="c1"># 满足最低浮盈后止损时收益</span>
+<span class="n">THRESH_STOPPROFIT</span> <span class="o">=</span> <span class="mf">0.10</span>
+<span class="c1"># 通过30min买入的买点，止损点定为买点最近一个30min低点，在此基础上加一个宽容度，止损点定为low*(1+STOP_P_BUFFER_30)</span>
+<span class="n">STOP_P_BUFFER_30</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.05</span>
+<span class="c1"># 每日30minK线个数</span>
+<span class="n">N_30</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="c1"># 每30min含5minK线个数</span>
+<span class="n">N_5</span> <span class="o">=</span> <span class="mi">6</span>
+<span class="c1"># 一年内交易日天数</span>
+<span class="n">N_TRADE</span> <span class="o">=</span> <span class="mi">255</span>
+<span class="c1"># K线级别</span>
+<span class="n">K_LEV_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;daily&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;30min&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s2">&quot;5min&quot;</span><span class="p">}</span>
+<span class="c1"># 交易类型</span>
+<span class="n">BUYSELL_TYPE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;B1-0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;30min第一买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;B1-1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;日线上第一买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;B2-0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;30min第二买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;B2-1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;日线上第二买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;B3-0&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;30min第三买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;B3-1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;B&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;日线上第三买点&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;S1&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;跌破日线前低点卖出&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;S2&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;按照买点的止损点卖出&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;S3&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;浮盈止盈点卖出&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;S4&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;跌破30min级别前低点卖出&quot;</span><span class="p">),</span>
+              <span class="s2">&quot;S5&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;S&quot;</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;跌破5min级别前低点卖出&quot;</span><span class="p">)}</span>
+<span class="n">MODE</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">BEGIN_DATE</span> <span class="o">=</span> <span class="s1">&#39;20150930&#39;</span>
+<span class="n">PERFORMANCE_BEGIN_DATE</span> <span class="o">=</span> <span class="s2">&quot;20151031&quot;</span>
+<span class="n">END_DATE</span> <span class="o">=</span> <span class="s1">&#39;20180930&#39;</span>
+<span class="c1"># 初始资金，单位（百元）</span>
+<span class="n">INIT_FUND</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">BUY1_PCT</span> <span class="o">=</span> <span class="mf">0.4</span>
+<span class="n">BUY2_PCT</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="n">MIN30_STR</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot; 10:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:30:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:30:00&quot;</span><span class="p">,</span>
+             <span class="s2">&quot; 13:30:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:00:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:30:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 15:00:00&quot;</span><span class="p">]</span>
+<span class="n">MIN5_STR</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot; 09:35:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 09:40:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 09:45:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 09:50:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 09:55:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:00:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 10:05:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:10:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:15:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:20:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:25:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:30:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 10:35:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:40:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:45:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:50:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 10:55:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:00:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 11:05:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:10:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:15:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:20:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:25:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 11:30:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 13:05:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:10:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:15:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:20:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:25:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:30:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 13:35:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:40:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:45:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:50:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 13:55:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:00:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 14:05:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:10:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:15:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:20:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:25:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:30:00&quot;</span><span class="p">],</span>
+            <span class="p">[</span><span class="s2">&quot; 14:35:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:40:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:45:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:50:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 14:55:00&quot;</span><span class="p">,</span> <span class="s2">&quot; 15:00:00&quot;</span><span class="p">]]</span>
+<span class="c1"># job1定时</span>
+<span class="n">JOB1_TIME</span> <span class="o">=</span> <span class="s2">&quot;15:50&quot;</span>
+<span class="c1"># job2定时</span>
+<span class="n">JOB2_TIME</span> <span class="o">=</span> <span class="s2">&quot;07:00&quot;</span>
+
+<span class="c1"># 降级别操作中首次取出30min K线的个数， 30d</span>
+<span class="n">LEN_K30</span> <span class="o">=</span> <span class="mi">240</span>
+<span class="c1"># 降级别操作中首次取出5min K线的个数, 10d</span>
+<span class="n">LEN_K5</span> <span class="o">=</span> <span class="mi">480</span>
+<span class="c1"># 发信邮箱</span>
+<span class="n">SENDER</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># 发信邮箱密码</span>
+<span class="n">SENDER_KEY</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># 收信邮箱</span>
+<span class="n">RECEIVER</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># 文件地址</span>
+<span class="n">CODE_FILE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># 工作文件夹</span>
+<span class="n">WORK</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="c1"># 数据库地址</span>
+<span class="n">DATABASE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">GRAPH</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">FREQ</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">PAINT</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">BENCHMARK</span> <span class="o">=</span> <span class="s2">&quot;000001.SH&quot;</span>
+
+
+<div class="viewcode-block" id="reset_params"><a class="viewcode-back" href="../constant.html#constant.reset_params">[文档]</a><span class="k">def</span> <span class="nf">reset_params</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">configparser</span> <span class="k">import</span> <span class="n">ConfigParser</span>
+    <span class="kn">import</span> <span class="nn">inspect</span>
+    <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">date</span>
+    <span class="kn">from</span> <span class="nn">dateutil.relativedelta</span> <span class="k">import</span> <span class="n">relativedelta</span>
+    <span class="n">today</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span>
+    <span class="n">early_begin</span> <span class="o">=</span> <span class="n">today</span> <span class="o">-</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">months</span><span class="o">=</span><span class="mi">37</span><span class="p">)</span>
+    <span class="n">early_performance_begin</span> <span class="o">=</span> <span class="n">early_begin</span> <span class="o">+</span> <span class="n">relativedelta</span><span class="p">(</span><span class="n">months</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;config.conf&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8-sig&quot;</span><span class="p">)</span>
+    <span class="n">secs</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">sections</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">sec</span> <span class="ow">in</span> <span class="n">secs</span><span class="p">:</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">options</span><span class="p">(</span><span class="n">sec</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">opt</span> <span class="ow">in</span> <span class="n">opts</span><span class="p">:</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">sec</span><span class="p">,</span> <span class="n">opt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;BEGIN_DATE&quot;</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">early_begin</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">):</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">early_begin</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">%Y-%m-</span><span class="si">%d</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Warning: 回测开始日期参数begin_date设置距今超过37个月，&quot;</span>
+                      <span class="n">f</span><span class="s2">&quot;可能导致分钟级别数据错误，启用默认参数begin_date=</span><span class="si">{v}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">opt</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;PERFORMANCE_BEGIN_DATE&quot;</span> <span class="ow">and</span> <span class="n">v</span> <span class="o">&lt;</span> <span class="n">BEGIN_DATE</span><span class="p">:</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">early_performance_begin</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">BEGIN_DATE</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+                <span class="n">v</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="si">{v}</span><span class="se">\&#39;</span><span class="s1">&#39;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Warning: 策略评估开始时间参数performance_begin_date设置早于回测开始时间，启用默认参数&quot;</span><span class="p">)</span>
+            <span class="c1"># exec(f&quot;{opt.upper()}={v}&quot;, inspect.currentframe().f_back.f_globals)</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{opt.upper()}=</span><span class="si">{v}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span></div>
+            <span class="c1"># exec(f&quot;{opt.upper()}={v}&quot;, scope)</span>
+
+
+<div class="viewcode-block" id="check_dir"><a class="viewcode-back" href="../constant.html#constant.check_dir">[文档]</a><span class="k">def</span> <span class="nf">check_dir</span><span class="p">():</span>
+    <span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span><span class="p">,</span> <span class="n">makedirs</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">WORK</span><span class="p">):</span>
+        <span class="n">makedirs</span><span class="p">(</span><span class="n">WORK</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">GRAPH</span><span class="p">):</span>
+        <span class="n">makedirs</span><span class="p">(</span><span class="n">GRAPH</span><span class="p">)</span></div>
+    <span class="c1"># if not path.exists(path.dirname(DATABASE)):</span>
+    <span class="c1">#     makedirs(path.dirname(DATABASE))</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">reset_params</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">WORK</span><span class="p">)</span>
+
+
+
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,150 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>hlPoint module &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="genindex.html" />
+    <link rel="search" title="搜索" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-hlPoint">
+<span id="hlpoint-module"></span><h1>hlPoint module<a class="headerlink" href="#module-hlPoint" title="永久链接至标题">¶</a></h1>
+<dl class="class">
+<dt id="hlPoint.HLPoint">
+<em class="property">class </em><code class="descclassname">hlPoint.</code><code class="descname">HLPoint</code><span class="sig-paren">(</span><em>klist</em>, <em>code</em>, <em>thresh=13</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(在 Python v3.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="hlPoint.HLPoint.get_hl">
+<code class="descname">get_hl</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.get_hl"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.get_hl" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hlPoint.HLPoint.h2l">
+<code class="descname">h2l</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.h2l"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.h2l" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hlPoint.HLPoint.init_hl">
+<code class="descname">init_hl</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.init_hl"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.init_hl" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hlPoint.HLPoint.l2h">
+<code class="descname">l2h</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.l2h"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.l2h" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="hlPoint.HLPoint.step_hl">
+<code class="descname">step_hl</code><span class="sig-paren">(</span><em>wait_thresh=55</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.step_hl"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.step_hl" title="永久链接至目标">¶</a></dt>
+<dd><p>完成导入回测期全部K线数据并创建K对象实例list后，在第二次从头遍历K对象实例时的每步迭代函数
+需要完成以下任务：
+/ 1.将当前高低点对象实例维护的全局状态域赋值给当前遍历的K对象实例的自有对应域
+:param wait_thresh:
+:return:</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="hlPoint.HLPoint.step_hl_s">
+<em class="property">static </em><code class="descname">step_hl_s</code><span class="sig-paren">(</span><em>next_hl</em>, <em>temp_hl_t</em>, <em>high</em>, <em>low</em>, <em>temp_hl</em>, <em>temp_m</em>, <em>from_hl</em>, <em>from_temp</em>, <em>pre_high</em>, <em>pre_low</em>, <em>pre_high2</em>, <em>pre_low2</em>, <em>space_h</em>, <em>space_l</em>, <em>l2h</em>, <em>h2l</em>, <em>stamp</em>, <em>thresh=13</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPoint.step_hl_s"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPoint.step_hl_s" title="永久链接至目标">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="hlPoint.HLPointMin">
+<em class="property">class </em><code class="descclassname">hlPoint.</code><code class="descname">HLPointMin</code><span class="sig-paren">(</span><em>klist_m</em>, <em>code</em>, <em>thresh</em>, <em>k_lev</em>, <em>init_hl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPointMin"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPointMin" title="永久链接至目标">¶</a></dt>
+<dd><p>基类：<a class="reference internal" href="#hlPoint.HLPoint" title="hlPoint.HLPoint"><code class="xref py py-class docutils literal notranslate"><span class="pre">hlPoint.HLPoint</span></code></a></p>
+<dl class="method">
+<dt id="hlPoint.HLPointMin.extend_klist">
+<code class="descname">extend_klist</code><span class="sig-paren">(</span><em>ref_t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/hlPoint.html#HLPointMin.extend_klist"><span class="viewcode-link">[源代码]</span></a><a class="headerlink" href="#hlPoint.HLPointMin.extend_klist" title="永久链接至目标">¶</a></dt>
+<dd><p>扩展本级别分钟级别的数据
+由于在降低级别回测过程中，由日线无法给出分钟级别的结束时间，因此为避免大量提取分钟数据的开销
+采取随着遍历逐渐扩充数据长度的方法，设定初始提取长度，LEN_K30和LEN_K5每当剩余长度不足初始长度1/4时
+提取新数据为原规定长度一半
+:param ref_t: 对应参考的日线时间戳
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>本页</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/hlPoint.rst.txt"
+            rel="nofollow">显示源代码</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="_sources/hlPoint.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

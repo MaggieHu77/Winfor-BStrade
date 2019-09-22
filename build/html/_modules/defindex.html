@@ -1,0 +1,329 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh_cn">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>defindex &#8212; BStrade beta v0.7.1 文档</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="搜索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>defindex 源代码</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># ! python3</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">定义K线时间类，及其转换关系</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">constant</span>
+
+
+<div class="viewcode-block" id="Kti"><a class="viewcode-back" href="../defindex.html#defindex.Kti">[文档]</a><span class="k">class</span> <span class="nc">Kti</span><span class="p">:</span>
+    <span class="n">O</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># K线时间原点表示</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_30</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">,</span> <span class="o">*</span><span class="n">i</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kti</span> <span class="o">=</span> <span class="n">i</span>   <span class="c1"># 如果*i没有赋值，那么为（）的空tuple</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_30</span> <span class="o">=</span> <span class="n">n_30</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kti</span> <span class="o">+=</span> <span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">N_5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kti</span> <span class="o">+=</span> <span class="p">(</span><span class="n">n_30</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kti</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">O</span>   <span class="c1"># 时间原点</span>
+
+    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义bool值，除原点外都是True</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;&gt;&quot;比较运算符</span>
+<span class="sd">        :param kti: 比较对象</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kti</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>  <span class="c1"># self代表本实例，self.__class__代表本类</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">&gt;</span> <span class="n">kti</span><span class="o">.</span><span class="n">value</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;==&quot;比较运算符</span>
+<span class="sd">        :param kti: 比较对象</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kti</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">==</span> <span class="n">kti</span><span class="o">.</span><span class="n">value</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;&lt;&quot;比较运算符</span>
+<span class="sd">        :param kti: 比较对象</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kti</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">kti</span><span class="o">.</span><span class="n">value</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;&lt;=&quot;比较运算符</span>
+<span class="sd">        :param kti: 比较对象</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">kti</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">kti</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;&gt;=&quot;比较运算符</span>
+<span class="sd">        :param kti: 比较对象</span>
+<span class="sd">        :return: bool</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="n">kti</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">kti</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;+&quot;运算符</span>
+<span class="sd">        :param other: RHS运算对象</span>
+<span class="sd">        :return: Kti object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Kn</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">lev</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">lev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">scalar_sub</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">O</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">other</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">other</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scalar_add</span><span class="p">(</span><span class="n">delta</span><span class="p">))</span>
+        <span class="n">kti</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_30</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">inv_value</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_30</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">kti</span>
+
+    <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;+&quot;运算符</span>
+<span class="sd">        :param other: LHS运算对象</span>
+<span class="sd">        :return: Kpi object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__add__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;-&quot;运算符</span>
+<span class="sd">        :param other: RHS运算对象</span>
+<span class="sd">        :return: Kpi object, tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Kn</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">lev</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 实例不能直接加减，必须用其value值进行运算后inverse</span>
+            <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">lev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># 实例与增量可以进行scalar加减，</span>
+                <span class="c1"># 但是需要以value进行inverse来标准化形式</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scalar_sub</span><span class="p">(</span><span class="n">delta</span><span class="p">))</span>
+            <span class="n">kti</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_30</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">inv_value</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_30</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>  <span class="c1"># 两个实例相减，得到的不是实例而是value值，</span>
+            <span class="c1"># 调用Kn.v_to_kn()的静态方法能够得到对应单位的差</span>
+            <span class="n">kti</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kti</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_30</span><span class="p">,</span> <span class="o">*</span><span class="n">other</span><span class="p">)</span>  <span class="c1"># 如果给的是tuple不是实例</span>
+            <span class="c1"># 不是正确使用方法，但是将其当作是实例，返回的是value的差</span>
+            <span class="c1"># 调用Kn.v_to_kn()的静态方法能够得到对应单位的差</span>
+            <span class="n">kti</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">(),</span> <span class="n">kti</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">kti</span>
+
+    <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        重定义&quot;-&quot;运算符</span>
+<span class="sd">        :param other: LHS运算对象</span>
+<span class="sd">        :return: Kpi object, tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__sub__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Kti.scalar_add"><a class="viewcode-back" href="../defindex.html#defindex.Kti.scalar_add">[文档]</a>    <span class="k">def</span> <span class="nf">scalar_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        元素对元素位加法</span>
+<span class="sd">        :param other: 对应元素</span>
+<span class="sd">        :return: tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">other</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Kti.scalar_sub"><a class="viewcode-back" href="../defindex.html#defindex.Kti.scalar_sub">[文档]</a>    <span class="k">def</span> <span class="nf">scalar_sub</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        元素对元素位减法</span>
+<span class="sd">        :param other: 对应元素</span>
+<span class="sd">        :return: tuple</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">other</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">other</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">kti</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">other</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Kti.value"><a class="viewcode-back" href="../defindex.html#defindex.Kti.value">[文档]</a>    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">kti</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kpi object的值</span>
+<span class="sd">        :param kti: tuple</span>
+<span class="sd">        :return: int value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">kti</span><span class="p">:</span>
+            <span class="n">kti</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kti</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     kti = kti[0]</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">kti</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_30</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span> <span class="o">+</span> <span class="n">kti</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span> <span class="o">+</span> <span class="n">kti</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">value</span></div>
+
+<div class="viewcode-block" id="Kti.inv_value"><a class="viewcode-back" href="../defindex.html#defindex.Kti.inv_value">[文档]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">inv_value</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">n_30</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Kpi标准化表达形式的tuple kpi</span>
+<span class="sd">        :param v: Kpi object的value</span>
+<span class="sd">        :return: tuple kpi</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">floor</span>
+        <span class="n">kti</span> <span class="o">=</span> <span class="p">(</span><span class="n">floor</span><span class="p">((</span><span class="n">v</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_30</span> <span class="o">/</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">),)</span>
+        <span class="n">kti</span> <span class="o">+=</span> <span class="p">(</span><span class="n">floor</span><span class="p">(((</span><span class="n">v</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_30</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">))</span> <span class="o">/</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">),</span> <span class="p">)</span>
+        <span class="n">kti</span> <span class="o">+=</span> <span class="p">(((</span><span class="n">v</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_30</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">))</span> <span class="o">%</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">,)</span>
+        <span class="k">return</span> <span class="n">kti</span></div></div>
+
+
+<div class="viewcode-block" id="get_kti_seq"><a class="viewcode-back" href="../defindex.html#defindex.get_kti_seq">[文档]</a><span class="k">def</span> <span class="nf">get_kti_seq</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">init_p</span><span class="p">,</span> <span class="n">n_30</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    helper function将自然序列排序的分钟级别数据转化为Kti实例index</span>
+
+<span class="sd">    :param seq: 自然序列编号</span>
+<span class="sd">    :param init_p: 设定第一个点的Kti格式编号</span>
+<span class="sd">    :param n_30: 一个交易日中有n_30个30min数据</span>
+<span class="sd">    :param value: 一个数据单位的Kti值，30min数据为N_5, 5min数据为1，日线数据为n_30*N_5</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">seq</span><span class="p">:</span>
+        <span class="n">seq_kti</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="n">n_30</span><span class="p">,</span> <span class="o">*</span><span class="n">init_p</span><span class="p">)</span>
+        <span class="n">o_v</span> <span class="o">=</span> <span class="n">o</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+        <span class="n">seq_v</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">o_v</span> <span class="o">+</span> <span class="n">x</span> <span class="o">*</span> <span class="n">value</span><span class="p">,</span> <span class="n">seq</span><span class="p">))</span>
+        <span class="n">seq_kti</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">Kti</span><span class="o">.</span><span class="n">inv_value</span><span class="p">,</span> <span class="n">seq_v</span><span class="p">,</span> <span class="p">[</span><span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">seq_v</span><span class="p">)))</span>
+        <span class="n">seq_kti</span> <span class="o">=</span> <span class="p">[</span><span class="n">Kti</span><span class="p">(</span><span class="n">n_30</span><span class="p">,</span> <span class="o">*</span><span class="n">kti</span><span class="p">)</span> <span class="k">for</span> <span class="n">kti</span> <span class="ow">in</span> <span class="n">seq_kti</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">seq_kti</span></div>
+
+
+<div class="viewcode-block" id="Kn"><a class="viewcode-back" href="../defindex.html#defindex.Kn">[文档]</a><span class="k">class</span> <span class="nc">Kn</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">lev</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lev</span> <span class="o">=</span> <span class="n">lev</span>
+
+<div class="viewcode-block" id="Kn.v_to_kn"><a class="viewcode-back" href="../defindex.html#defindex.Kn.v_to_kn">[文档]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">v_to_kn</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">lev</span><span class="p">,</span> <span class="n">n_30</span><span class="o">=</span><span class="n">constant</span><span class="o">.</span><span class="n">N_30</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">floor</span>
+        <span class="n">den</span> <span class="o">=</span> <span class="p">[</span><span class="n">n_30</span> <span class="o">*</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">,</span> <span class="n">constant</span><span class="o">.</span><span class="n">N_5</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">floor</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">den</span><span class="p">[</span><span class="n">lev</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">floor</span><span class="p">(</span><span class="n">v</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">den</span><span class="p">[</span><span class="n">lev</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span></div></div>
+
+
+<span class="c1"># unit test</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">t2</span> <span class="o">=</span> <span class="n">Kti</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t1</span><span class="o">&lt;=</span><span class="n">t2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t1</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">t2</span><span class="o">.</span><span class="n">value</span><span class="p">())</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">Kn</span><span class="o">.</span><span class="n">v_to_kn</span><span class="p">(</span><span class="n">t2</span><span class="o">-</span><span class="n">t1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">Kn</span><span class="o">.</span><span class="n">v_to_kn</span><span class="p">(</span><span class="n">t2</span> <span class="o">-</span> <span class="n">t1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">Kn</span><span class="o">.</span><span class="n">v_to_kn</span><span class="p">(</span><span class="n">t2</span> <span class="o">-</span> <span class="n">t1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">((</span><span class="n">t2</span><span class="o">+</span><span class="n">t1</span><span class="p">)</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span>
+    <span class="n">dt</span><span class="o">=</span><span class="n">Kn</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">((</span><span class="n">t1</span><span class="o">+</span><span class="n">dt</span><span class="p">)</span><span class="o">.</span><span class="n">kti</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">模块代码</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>快速搜索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="转向" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Maggie Hu.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
