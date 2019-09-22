@@ -138,7 +138,7 @@ BUYSELL_TYPE = {"B1-0": ("B", 1, 0, "30min第一买点"),
 ##### 卖点
 &emsp;&emsp;卖点与买点是相对的概念，且一个卖点只能为一个买点出场。若一个买点在存续期间内有多个可参考卖出点位，则其最高的卖出点位为有效卖点目标价格（**卖点孰高原则**）。买点只要在价格跌破任一卖点目标价格时就可执行卖出交易。
 - 第一类卖点**S1**，适用于所有类型的买点，其参考价格为前日线低点价格，一旦价格跌破前日线低点价格，趋势不可能处于上涨当中，所有存续买点应该出场
-- 第二类卖点**S2**，也适用于所有买点，但其定义为所有买点在买入时即可确定的目标价格。对于日线级别买入的买点，一般是买入时的日线低点。对于30min买入的买点，可以通过[`stop_p_buffer_30`](#stop_p_buffer_30)参数调节其卖点价格，其埋点价格计算为$(1+stop\_p\_buffer\_30)low\_30$即最近30min低点价格上下浮动一个buffer。前两类卖点都属于止损卖点
+- 第二类卖点**S2**，也适用于所有买点，但其定义为所有买点在买入时即可确定的目标价格。对于日线级别买入的买点，一般是买入时的日线低点。对于30min买入的买点，可以通过[`stop_p_buffer_30`](#stop_p_buffer_30)参数调节其卖点价格，其埋点价格计算为$(1+stop\,p\,buffer\,30)low\,30$即最近30min低点价格上下浮动一个buffer。前两类卖点都属于止损卖点
 - 第三类卖点**S3**，触发条件为该买点累计收益曾经达到[`thresh_profit`](#thresh_profit)，此后如果累计收益下降到[`thresh_stopprofit`](#thresh_stopprofit)时卖出。第三类卖点在意义上是止盈卖点，但在具体情况中不严格保证高于前两类买点。
 - 第四类卖点**S4**，触发条件为上涨过程中，在30min级别上结束上涨趋势时卖出。属于止盈卖点。
 - 第四类卖点**S5**，触发条件为上涨过程中，在5min级别上结束上涨趋势时卖出。属于止盈卖点。
@@ -249,7 +249,7 @@ graph = 'C:/Users/zhangchangsheng/Desktop/Strategy/graph_trend'
 ```
 
 #### 参数具体释义
-<span id="backtest"><u>**==[backtest]==**</u></span>
+<span id="backtest"><u>**[backtest]**</u></span>
 **mode**
 > `int`, 0或者1，控制程序的运行模式；由于目前版本只实现了回测功能。因此两种模式之间无大差别。注意，`mode=1`表示从回测开始时间回测到当前最近一个交易日；`mode=0`表示从回测开始时间回测到设定的回测结束时间。`mode=1`相当于缺省回测结束时间`end_date`参数为当前日期。
 
@@ -278,17 +278,17 @@ d. `XXXXXX.SH;XXXXXX.SH;XXXXXX.SZ`, 用$;$分隔开具体的股票代码，画�
 **n_trade**
 > `int`，一年当中交易日的天数，用于计算年化收益和年化波动率。
 
-<span id="trade"><u>**==[trade]==**</u></span>
+<span id="trade"><u>**[trade]**</u></span>
 **init_fund**
 > `int, float`分配各每只股票的初始资金，单位（百元）
 
 **buy1_pct**
-> `float`，0~1，第一通过第一买点买入股票，仓位占当前账户现金的比重。由于第一买点买入股票时，股票必然不存在多头仓位（已有仓位都已经清仓），即用$buy1\_pct*cash$得到买入的资金量
+> `float`，0~1，第一通过第一买点买入股票，仓位占当前账户现金的比重。由于第一买点买入股票时，股票必然不存在多头仓位（已有仓位都已经清仓），即用$buy1\,pct*cash$得到买入的资金量
 
 **buy2_pct**
-> `float`，0~1，在已有第一买点的情况下，在第二买点买入股票所占资金比例。一般设置为$1-buy1\_pct$，含义为用`buy1_pct`比例资金在第一买点买入，剩余所有资金在第二买点买入。**注意**，如果在第二买点出现前没有出现第一买点，则在$buy1\_pct+buy2\_pct=1$的条件下，全部资金都用于第二买点的买入。更一般的，对于$buy1\_pct+buy2\_pct<1$，第二买点先于第一买点出现时，第二买点买入资金量计算为$\frac{buy2\_pct}{1-buy1\_pct}$
+> `float`，0~1，在已有第一买点的情况下，在第二买点买入股票所占资金比例。一般设置为$1-buy1\,pct$，含义为用`buy1_pct`比例资金在第一买点买入，剩余所有资金在第二买点买入。**注意**，如果在第二买点出现前没有出现第一买点，则在$buy1\,pct+buy2\,pct=1$的条件下，全部资金都用于第二买点的买入。更一般的，对于$buy1\,pct+buy2\,pct<1$，第二买点先于第一买点出现时，第二买点买入资金量计算为$\frac{buy2\,pct}{1-buy1\,pct}$
 
-<span id="hlp"><u>**==[hlp]==**</u></span>
+<span id="hlp"><u>**[hlp]**</u></span>
 <span id="thresh_d">**thresh_d**</span>
 > `int`，日线结构[高低点](#高低点)的间隔，默认值为13
 
@@ -304,11 +304,11 @@ d. `XXXXXX.SH;XXXXXX.SH;XXXXXX.SZ`, 用$;$分隔开具体的股票代码，画�
 <span id="avg_buffer">**avg_buffer**</span>
 > `int，float`，在`avg_n`次上涨或回调的均值基础上做一定的调整，以此结果作为当前[高点或低点](#高低点)判定的参考。例如，当前待判定低点，待判定低点的价位为$l_0$，从待判定低点到当前区间内的最高价为$h$，设定`avg_n`=3，前3次上涨的幅度（指从低点到紧接着的高点的涨幅大小）分别为$u_1,u_2,u_3$，那么如果$\frac{h-l_0}{l_0}>\frac{u_1+u_2+u_3}{3}*$`avg_buffer`，即可确认当前待判定低点为低点。默认`avg_buffer`为1，即不对均值做调整。
 
-<span id="trend"><u>**==[trend]==**</u></span>
+<span id="trend"><u>**[trend]**</u></span>
 <span id="trend_rev">**trend_rev**</span>
 > `int`，适用上涨/下跌趋势的确认第ii)条准则。例如，当前处于下跌或盘整趋势，并且最近一个确认的高低点类型为低点，那么在被确认的低点当天至当前的区间内最高点的时间超过`trend_rev`个交易日，即可判定上涨趋势成立。反之，如果当前处于上涨或盘整阶段，并且最近一个确认的高低点类型为高点，那么在被确认高点当天至当前的区间内最低点当天的时间间隔超过`trend_rev`个交易日，即可判定下跌趋势成立。
 
-<span id="bsp"><u>**==[bsp]==**</u></span>
+<span id="bsp"><u>**[bsp]**</u></span>
 <span id="max_upfloat">**max_upfloat**</span>
 > `float`，30min买点寻找失败后，在随后确认日线低点时若不跌破前低，则满足日线买点部分条件，随后通过`max_uploat`决定是否通过在日线买入的限制。eg,确认低点价格为$Low$，确认低点当天收盘价$close$，如果$\frac{close}{Low}>1+$`max_upfloat`，则由于上涨果断放弃该买点买入机会，否则可以买入该买点。该参数取越大值则买入态度更激进，该值较小时交易态度趋于保守。
 
@@ -322,12 +322,12 @@ d. `XXXXXX.SH;XXXXXX.SH;XXXXXX.SZ`, 用$;$分隔开具体的股票代码，画�
 > `float`，浮盈止损限制。如果通过该买点买入的股票累计收益率曾经达到过`thresh_profit`，则可适用止盈规则，在收益率低于`thresh_stopprofit`时卖出。
 
 <span id="thresh_stopprofit">**thresh_stopprofit**</span>
-> `float`，与`thresh_profit`一起使用，对于一个买点，其买入资产价格为$p$，当价格突破$p(1+thresh\_profit)$后，需要在价格低于$p(1+thresh\_stopprofit))$时卖出。
+> `float`，与`thresh_profit`一起使用，对于一个买点，其买入资产价格为$p$，当价格突破$p(1+thresh\,profit)$后，需要在价格低于$p(1+thresh\,stopprofit))$时卖出。
 
 <span id="stop_p_buffer_30">**stop_p_buffer_30**</span>
-> `float`，正负不限。通过30min买入的买点，止损点定为买点最近一个30min低点$low$，在此基础上加一个宽容度，止损点定为$low(1+stop\_p\_buffer\_30)$
+> `float`，正负不限。通过30min买入的买点，止损点定为买点最近一个30min低点$low$，在此基础上加一个宽容度，止损点定为$low(1+stop\,p\,buffer\,30)$
 
-<span id="email"><u>**==[email]==**</u></span>：<font color="red">Warning:该模块功能在本版中未启用，为兼容[BStrend]保留</font>
+<span id="email"><u>**[email]**</u></span>：<font color="red">Warning:该模块功能在本版中未启用，为兼容[BStrend]保留</font>
 **sender**
 > `str`，完整邮箱地址字符串，注意发信邮箱当前支持的邮箱地址后缀包括 163.com | winforcap.com | nedugroup.com | sina.com | sohu.com | 126.com | qq.com | hotmail.com | gmail.com | foxmail.com。
 
@@ -346,7 +346,7 @@ d. `XXXXXX.SH;XXXXXX.SH;XXXXXX.SZ`, 用$;$分隔开具体的股票代码，画�
 **job2_time**
 > `str`，格式为`mm:ss`，模拟交易中美股每日收盘行情更新时间，由于时差，建议设置为“07:00”。<font color="red">Warning:使用分钟数据的情况下，不支持美股，该参数可忽略。</font>
 
-<span id="dir"><u>**==[dir]==**</u></span>
+<span id="dir"><u>**[dir]**</u></span>
 <span id="code_file">**code_file**</span>
 > `str`，文件地址字符串（绝对路径），指定待回测股票文件的绝对路径。
 
